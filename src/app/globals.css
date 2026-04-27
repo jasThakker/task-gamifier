@@ -80,6 +80,31 @@
   --radius: 0.875rem;
 }
 
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.16 0.015 290);
+  --foreground: oklch(0.92 0.012 80);
+  --card: oklch(0.21 0.015 290);
+  --card-foreground: oklch(0.92 0.012 80);
+  --popover: oklch(0.21 0.015 290);
+  --popover-foreground: oklch(0.92 0.012 80);
+  --primary: oklch(0.72 0.14 165);
+  --primary-foreground: oklch(0.10 0 0);
+  --secondary: oklch(0.26 0.012 290);
+  --secondary-foreground: oklch(0.92 0.012 80);
+  --muted: oklch(0.25 0.012 290);
+  --muted-foreground: oklch(0.58 0.015 80);
+  --accent: oklch(0.28 0.025 88);
+  --accent-foreground: oklch(0.92 0.012 80);
+  --destructive: oklch(0.65 0.20 24);
+  --border: oklch(0.32 0.015 290);
+  --input: oklch(0.32 0.015 290);
+  --ring: oklch(0.72 0.14 165);
+  --border-dark: oklch(0.22 0.015 290);
+  --shadow-chunky: 0 4px 0 0 oklch(0.22 0.015 290);
+  --shadow-chunky-primary: 0 4px 0 0 oklch(0.50 0.14 165);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
