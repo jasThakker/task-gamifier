@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 import { getResourceWithSessions } from "@/server/db/queries";
 import { SessionCard } from "@/components/session-card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { CelebrationTrigger } from "@/components/gamification/celebration-trigger";
 
 const SOURCE_LABELS: Record<string, string> = {
   text: "Text",
@@ -26,6 +28,9 @@ export default async function ResourcePage({ params }: Props) {
 
   return (
     <div className="space-y-8">
+      <Suspense>
+        <CelebrationTrigger />
+      </Suspense>
       <Link
         href="/resources"
         className={buttonVariants({ variant: "ghost", size: "sm", className: "-ml-2" })}

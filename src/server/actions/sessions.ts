@@ -16,12 +16,16 @@ export async function markSessionComplete(formData: FormData): Promise<void> {
   if (!row) throw new Error("Session not found");
   if (!user) throw new Error("User not found");
 
+  let celebrationParams = "";
+
   if (!row.session.completedAt) {
     const reflection = formData.get("reflection");
     const xpDelta = xpForSession(row.session.estimatedMinutes);
 
     const newXp = user.xp + xpDelta;
     const newLevel = levelFromXp(newXp);
+    const oldLevel = levelFromXp(user.xp);
+    const leveledUp = newLevel > oldLevel;
     const streakUpdate = computeStreakUpdate(
       user.currentStreak,
       user.longestStreak,
@@ -58,7 +62,9 @@ export async function markSessionComplete(formData: FormData): Promise<void> {
         })
         .where(eq(users.id, user.id));
     });
+
+    celebrationParams = `?xp=${xpDelta}&leveled=${leveledUp ? newLevel : 0}`;
   }
 
-  redirect(`/resources/${row.resource.id}`);
+  redirect(`/resources/${row.resource.id}${celebrationParams}`);
 }

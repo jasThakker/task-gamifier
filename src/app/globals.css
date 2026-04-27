@@ -2,7 +2,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Map shadcn CSS variables to Tailwind v4 color utilities */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -23,37 +22,62 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Custom design tokens */
+  /* Playful palette */
   --color-ink: #1f1d2b;
   --color-cream: #fff7ec;
-  --color-mint: #7ed7c1;
+  --color-mint: #5ecba1;
   --color-coral: #ff7a7a;
   --color-sun: #ffd166;
   --color-sky: #7ec4ff;
+  --color-mint-light: #d4f5e9;
+  --color-sun-light: #fff3cc;
+  --color-coral-light: #ffe0e0;
+
+  /* Custom utilities */
+  --radius-chunky: 1.25rem;
+  --border-dark: oklch(0.62 0.028 80);
+  --shadow-chunky: 0 4px 0 0 var(--border-dark);
+  --shadow-chunky-primary: 0 4px 0 0 oklch(0.50 0.14 165);
 }
 
-/* shadcn design tokens (light mode) */
 :root {
   color-scheme: light;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+
+  /* Warm cream background */
+  --background: oklch(0.978 0.018 80);
+  --foreground: oklch(0.18 0.025 290);
+
+  /* Cards slightly whiter than background */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.18 0.025 290);
+
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --radius: 0.625rem;
+  --popover-foreground: oklch(0.18 0.025 290);
+
+  /* Primary = mint green (learning/progress color) */
+  --primary: oklch(0.68 0.14 165);
+  --primary-foreground: oklch(1 0 0);
+
+  /* Secondary = warm light */
+  --secondary: oklch(0.96 0.015 80);
+  --secondary-foreground: oklch(0.18 0.025 290);
+
+  /* Muted = slightly warm gray */
+  --muted: oklch(0.95 0.012 80);
+  --muted-foreground: oklch(0.52 0.02 80);
+
+  /* Accent = sun yellow */
+  --accent: oklch(0.94 0.06 88);
+  --accent-foreground: oklch(0.18 0.025 290);
+
+  --destructive: oklch(0.65 0.20 24);
+
+  /* Solid, visible border */
+  --border: oklch(0.78 0.028 80);
+  --input: oklch(0.78 0.028 80);
+  --ring: oklch(0.68 0.14 165);
+
+  --radius: 0.875rem;
 }
 
 @layer base {
@@ -63,9 +87,32 @@
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 
   html {
     @apply font-sans;
+  }
+}
+
+@layer utilities {
+  .rounded-chunky {
+    border-radius: var(--radius-chunky);
+  }
+
+  .shadow-chunky {
+    box-shadow: var(--shadow-chunky);
+  }
+
+  .shadow-chunky-primary {
+    box-shadow: var(--shadow-chunky-primary);
+  }
+
+  .card-playful {
+    @apply rounded-chunky border-2 border-border bg-card shadow-chunky transition-all duration-150;
+  }
+
+  .card-playful:hover {
+    @apply -translate-y-0.5;
   }
 }

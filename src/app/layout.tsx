@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Nunito } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { getCurrentUser } from "@/server/db/queries";
 import { progressToNextLevel } from "@/lib/xp";
 import { StreakBadge } from "@/components/gamification/streak-badge";
 import { LevelBadge } from "@/components/gamification/level-badge";
 import { XpBar } from "@/components/gamification/xp-bar";
+import { CelebrationOverlay } from "@/components/gamification/celebration-overlay";
 import "./globals.css";
 
-const geistSans = Geist({ subsets: ["latin"], variable: "--font-sans" });
-const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
+const nunito = Nunito({ subsets: ["latin"], variable: "--font-sans", weight: ["400", "600", "700", "800", "900"] });
 
 export const metadata: Metadata = {
   title: "Task Gamifier",
@@ -26,7 +26,7 @@ export default async function RootLayout({
   const xpProgress = user ? progressToNextLevel(user.xp) : null;
 
   return (
-    <html lang="en" className={cn(geistSans.variable, geistMono.variable)}>
+    <html lang="en" className={cn(nunito.variable)}>
       <body className="min-h-dvh antialiased">
         <div className="mx-auto max-w-3xl px-6">
           <header className="flex items-center justify-between gap-4 py-4 border-b border-border">
@@ -56,6 +56,7 @@ export default async function RootLayout({
             )}
           </header>
           <main className="py-8">{children}</main>
+          <CelebrationOverlay />
         </div>
       </body>
     </html>
