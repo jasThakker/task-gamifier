@@ -186,6 +186,7 @@ Format per entry: **Decision · Context · Alternatives · Reasoning · Tradeoff
 - **Alternatives considered**: Mantine, Chakra UI, MUI, raw Tailwind.
 - **Reasoning**: shadcn isn't a library — it copies primitive components into your repo, so we can theme them deeply for the cute Duolingo feel without fighting framework defaults. Tailwind is the lingua franca of modern React UI work and pairs naturally with shadcn.
 - **Tradeoffs**: Each shadcn component is now your code to maintain. Acceptable; that's the design.
+- **Revised by D-021** — shadcn v4 uses Base UI (not Radix) and requires Tailwind v4.
 
 ---
 
@@ -214,6 +215,23 @@ Format per entry: **Decision · Context · Alternatives · Reasoning · Tradeoff
 - **Context**: 40–50 hour budget; user prioritizes practice + cool build.
 - **Reasoning**: Manual smoke testing in the running app catches more for a UI-heavy personal project than an E2E suite would. Pure-function tests catch the gnarliest bugs (XP math, streak transitions).
 - **Tradeoffs**: Regressions in UI flows are caught only manually. Acceptable for v1.
+
+---
+
+## D-021 · Tailwind v4 + shadcn v4 / Base UI (forced upgrade during Phase 1)
+
+- **Decision**: Upgrade from Tailwind v3 → v4 and accept shadcn v4's use of Base UI instead of Radix UI.
+- **Context**: `npx shadcn@latest init` during Phase 1 installed the new "base-nova" style (shadcn v4), which uses `@base-ui/react` primitives and generates CSS with Tailwind v4 syntax (`@theme`, `@custom-variant`). This broke the v3 build immediately.
+- **Alternatives considered**:
+  - Pin to an older shadcn release that uses Radix + Tailwind v3.
+  - Remove shadcn's CSS import and patch the generated components manually.
+- **Reasoning**: Tailwind v4 is stable (Feb 2025) and is the clear future direction. Pinning to old shadcn would mean missing security patches and fighting the ecosystem. The upgrade was ~30 minutes of config work (`postcss.config.mjs`, `globals.css` rewrite with `@theme inline` mappings, `tailwind.config.ts` simplification).
+- **Practical consequences**:
+  - `tailwind.config.ts` is now minimal — theme tokens live in `@theme {}` in `globals.css`.
+  - `postcss.config.mjs` uses `@tailwindcss/postcss` instead of `tailwindcss` + `autoprefixer`.
+  - shadcn components use Base UI primitives. Key API difference: `asChild` prop is gone; use `render` prop or apply `buttonVariants()` directly to `<Link>` elements.
+  - Custom palette tokens (`ink`, `cream`, `mint`, etc.) are defined in `@theme inline` in `globals.css` rather than `tailwind.config.ts`.
+- **Tradeoffs**: Base UI is less mature than Radix in terms of community resources and third-party integrations. The component API is slightly different (no `asChild`). Acceptable — we own the component files.
 
 ---
 

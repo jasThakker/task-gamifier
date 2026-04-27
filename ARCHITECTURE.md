@@ -9,14 +9,15 @@ System design for Task Gamifier. Pairs with `PLAN.md` (product) and `DECISIONS.m
 | Subsystem | Status | Notes |
 |---|---|---|
 | Project scaffolding | ✅ Phase 0 | Next 15.5 + React 19 + TS strict (`noUncheckedIndexedAccess`) + `@/` alias |
-| Tailwind + tokens | ✅ Phase 0 | Custom palette (`ink`/`cream`/`mint`/`coral`/`sun`/`sky`), `font-display`/`font-body`, `rounded-chunky`, `shadow-chunky`. shadcn primitives not installed yet — will be pulled in as needed during phase 1+ |
+| Tailwind + tokens | ✅ Phase 0→1 | Upgraded to **Tailwind v4** mid-Phase 1 (required by shadcn v4). Custom palette tokens now in `@theme inline` in `globals.css`. `rounded-chunky`/`shadow-chunky` defined there too. `tailwind.config.ts` is now minimal (no theme extensions). See D-021. |
+| shadcn / Base UI | ✅ Phase 1 | shadcn v4 "base-nova" style installed. Uses **Base UI** (not Radix). `asChild` replaced by `render` prop or `buttonVariants()` applied directly to `<Link>`. Primitives: button, input, textarea, card, badge, tabs, select. |
 | Drizzle schema + migrations | ✅ Phase 0 | `src/server/db/schema.ts`; first migration `drizzle/0000_tough_night_nurse.sql` applied to Neon |
-| DB client + queries | ✅ Phase 0 | `node-postgres` Pool, dev-mode global cache; `getCurrentUser()` stub in `queries.ts` |
+| DB client + queries | ✅ Phase 1 | `getCurrentUser()`, `getAllResources()`, `getResourceWithSessions()`, `getSession()` in `queries.ts` |
 | Seed (hardcoded user) | ✅ Phase 0 | `npm run db:seed` — idempotent insert of `USER_ID` |
-| LLM provider abstraction | ✅ Phase 0 (stub) | `src/server/llm/provider.ts` — env-driven switch; `breakdown.ts`/`prompts.ts` land in phase 1 |
-| Ingest pipelines | ⏳ Phase 1 (text + youtube) / Phase 4 (pdf) | |
-| Server actions | ⏳ Phase 1 onward | |
-| App shell | ✅ Phase 0 (placeholder) | `src/app/layout.tsx` + `page.tsx` — landing copy only; real dashboard comes in phase 2 |
+| LLM provider abstraction | ✅ Phase 1 | `provider.ts` (env-driven, default `claude-sonnet-4-6`), `prompts.ts` (skill-level system prompts), `breakdown.ts` (`generateObject` with separate Zod schemas per source type) |
+| Ingest pipelines | ✅ Phase 1 (text + youtube) / ⏳ Phase 4 (pdf) | `ingest/text.ts` (passthrough), `ingest/youtube.ts` (yt-dlp shell + VTT parser, 30s segment merging). `NormalizedContent` + `TimestampedSegment` types in `ingest/types.ts` |
+| Server actions | ✅ Phase 1 | `actions/resources.ts` (`createResource`), `actions/sessions.ts` (`markSessionComplete`) |
+| App shell | ✅ Phase 1 | Home page with CTAs, resource list, resource detail, session detail — all functional. Real dashboard (Phase 2) replaces home page. |
 | Animations / Lottie / Zustand | ⏳ Phase 3 | Not yet installed |
 
 ---
@@ -151,19 +152,18 @@ All mutations are server actions. Reads are server-component data fetches (no AP
 
 ```ts
 // src/server/actions/resources.ts
-createResource(input: CreateResourceInput): Promise<{ id: string }>
+// useActionState signature — returns error state or redirects on success
+createResource(_prevState: CreateResourceState, formData: FormData): Promise<CreateResourceState>
+// post-MVP:
 deleteResource(resourceId: string): Promise<void>
-regenerateBreakdown(resourceId: string): Promise<void>     // post-MVP
+regenerateBreakdown(resourceId: string): Promise<void>
 
 // src/server/actions/sessions.ts
-markSessionComplete(sessionId: string, reflection?: string): Promise<{
-  xpAwarded: number;
-  newLevel?: number;
-  streakUpdated: boolean;
-}>
+// direct form action — redirects to resource page on success; XP logic added in Phase 2
+markSessionComplete(formData: FormData): Promise<void>
 
-// src/server/actions/dashboard.ts (mostly reads via RSC, but)
-recomputeStreak(): Promise<void>      // called on app load if last_active_date < today
+// src/server/actions/dashboard.ts — Phase 2
+recomputeStreak(): Promise<void>
 ```
 
 Reads (server components fetch directly via Drizzle):
@@ -188,36 +188,28 @@ ingest.run(input) ──▶ NormalizedContent
    db.transaction { insert resource (status=ready) + sessions }
 ```
 
-`NormalizedContent` shape:
+`NormalizedContent` shape (live in `src/server/ingest/types.ts`):
 ```ts
 type NormalizedContent =
-  | { kind: "text"; text: string }
-  | { kind: "youtube"; transcript: TimestampedSegment[]; durationSeconds: number; title: string }
-  | { kind: "youtube_playlist"; videos: Array<{ id, title, transcript, durationSeconds }> }
-  | { kind: "pdf"; text: string; pageBoundaries: number[]; title: string };
+  | { kind: "text"; text: string; title: string }
+  | { kind: "youtube"; videoId: string; title: string; durationSeconds: number; transcript: TimestampedSegment[] }
+  | { kind: "pdf"; text: string; pageBoundaries: number[]; title: string };  // Phase 4
+  // youtube_playlist deferred to Phase 5
 ```
 
-Provider selection (`src/server/llm/provider.ts`, implemented in Phase 0):
+Provider selection (`src/server/llm/provider.ts`):
 ```ts
 // LLM_PROVIDER selects the SDK; LLM_MODEL optionally overrides the per-provider default.
 const DEFAULTS = {
-  anthropic: "claude-sonnet-4-5",  // bump to claude-sonnet-4-6 once verified live
+  anthropic: "claude-sonnet-4-6",
   openai:    "gpt-4o",
   google:    "gemini-1.5-pro",
 };
-
-export function getModel(): LanguageModel {
-  const provider = (process.env.LLM_PROVIDER ?? "anthropic") as LlmProvider;
-  const id = process.env.LLM_MODEL ?? DEFAULTS[provider];
-  switch (provider) {
-    case "anthropic": return anthropic(id);
-    case "openai":    return openai(id);
-    case "google":    return google(id);
-  }
-}
 ```
 
-`breakdown.ts` (the actual `generateObject` call) and `prompts.ts` (the per-skill-level system prompt templates) are deferred to phase 1.
+`prompts.ts` — three system prompts keyed to skill level (beginner/intermediate/advanced); sets chunk-size expectations, jargon handling, and locator instructions.
+
+`breakdown.ts` — two Zod schemas (`YouTubeSessionSchema` with `startSeconds`/`endSeconds`, `TextSessionSchema` without); calls `generateObject`; maps output to `NewSession[]`. Text session ranges are assigned proportionally post-LLM (not LLM-derived).
 
 ---
 

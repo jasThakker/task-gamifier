@@ -10,14 +10,14 @@ These are required for the app to be demo-able and personally useful. ~24 hours 
 
 | # | Feature | Phase | Notes |
 |---|---|---|---|
-| M1 | Submit a **plain text** learning resource | 1 | Paste any text, pick skill level, get sessions |
-| M2 | Submit a **YouTube single video** resource | 1 | URL → transcript via yt-dlp → sessions with timestamp ranges |
-| M3 | LLM **breakdown into sessions** | 1 | Single `generateObject` call with Zod schema |
-| M4 | **Skill-level conditioning** (3-level enum) | 1 | beginner / intermediate / advanced changes the prompt |
-| M5 | **Session list view per resource** | 1 | Ordered, shows progress, lets user click into one |
-| M6 | **Session detail flashcard** | 1 | Focus goal, objectives, key concepts, outcome statement |
-| M7 | **Embedded YouTube player** cued to assigned timestamps | 1 | iframe with start/end params |
-| M8 | **Mark session complete** (self-report) | 1 | Button → server action → DB update |
+| ~~M1~~ ✅ | Submit a **plain text** learning resource | 1 | Paste any text, pick skill level, get sessions |
+| ~~M2~~ ✅ | Submit a **YouTube single video** resource | 1 | URL → transcript via yt-dlp → sessions with timestamp ranges. Requires `yt-dlp` installed locally |
+| ~~M3~~ ✅ | LLM **breakdown into sessions** | 1 | `generateObject` with separate Zod schemas per source type; `claude-sonnet-4-6` default |
+| ~~M4~~ ✅ | **Skill-level conditioning** (3-level enum) | 1 | beginner / intermediate / advanced changes the system prompt |
+| ~~M5~~ ✅ | **Session list view per resource** | 1 | Ordered, shows progress bar, lets user click into one |
+| ~~M6~~ ✅ | **Session detail flashcard** | 1 | Focus goal, objectives, key concepts, outcome statement |
+| ~~M7~~ ✅ | **Embedded YouTube player** cued to assigned timestamps | 1 | iframe with start/end params |
+| ~~M8~~ ✅ | **Mark session complete** (self-report) | 1 | Form action → DB update → redirect; optional reflection notes (S6 pulled in early) |
 | M9 | **XP awarded on completion** | 2 | Scaled by `estimated_minutes` |
 | M10 | **Decorative level** (numbers go up) | 2 | `level = floor(sqrt(xp / 100))` or similar |
 | M11 | **Daily streak** with strict reset | 2 | First completion of the day increments; missed day = 0 |
@@ -39,7 +39,7 @@ Nice to ship in v1; cuttable if time runs out. ~18 hours.
 | S3 | **Mobile-responsive layouts** | 6 | Phone usable; not phone-first |
 | S4 | **First-run onboarding** | 6 | "Try a sample resource" button to seed an example |
 | S5 | **Polished empty states** | 7 | Illustrations + helpful CTAs for empty dashboard / resource list |
-| S6 | **Reflection notes** prompt on session complete | 7 | Optional textarea after marking complete |
+| ~~S6~~ ✅ | **Reflection notes** prompt on session complete | 7 | Optional textarea after marking complete — pulled into Phase 1 (trivial to add alongside mark-complete) |
 | S7 | **README with screenshots** | 7 | For potential open-sourcing |
 | S8 | **Public deploy** (Railway or Fly) | 7 | Stretch — the project succeeds without this |
 
