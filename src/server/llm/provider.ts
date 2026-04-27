@@ -6,7 +6,7 @@ import type { LanguageModel } from "ai";
 export type LlmProvider = "anthropic" | "openai" | "google";
 
 const DEFAULTS: Record<LlmProvider, string> = {
-  anthropic: "claude-sonnet-4-5",
+  anthropic: "claude-sonnet-4-6",
   openai: "gpt-4o",
   google: "gemini-1.5-pro",
 };

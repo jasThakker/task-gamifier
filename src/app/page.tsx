@@ -1,11 +1,23 @@
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+
 export default function HomePage() {
   return (
     <main className="space-y-6">
-      <h1 className="font-display text-4xl font-bold">task gamifier</h1>
-      <p className="text-ink/70">
-        phase 0 scaffolding is up. paste text, drop a youtube link, or upload a
-        pdf — coming next in phase 1.
-      </p>
+      <div className="space-y-2">
+        <h1 className="text-4xl font-bold tracking-tight">task gamifier</h1>
+        <p className="text-muted-foreground">
+          Turn any learning resource into a streak of focused study sessions.
+        </p>
+      </div>
+      <div className="flex gap-3">
+        <Link href="/resources/new" className={buttonVariants()}>
+          Start learning
+        </Link>
+        <Link href="/resources" className={buttonVariants({ variant: "outline" })}>
+          My resources
+        </Link>
+      </div>
     </main>
   );
 }
