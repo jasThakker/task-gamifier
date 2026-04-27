@@ -139,16 +139,16 @@ Cost expectation: Sonnet 4.6 on a 2-hour video transcript ≈ 30k–50k input to
 
 ## Build order
 
-| Phase | Hours | Deliverable |
-|---|---|---|
-| **0. Setup** | 3 | Next.js + TS + Tailwind + shadcn + Drizzle + Neon + AI SDK plumbing; `.env` config; basic layout shell |
-| **1. Text + YouTube video flow** | 8 | End-to-end: paste URL or text → LLM breakdown → session list → mark complete |
-| **2. Gamification core** | 5 | XP, level, streak, dashboard, basic transitions |
-| **3. The "fun" pass** | 8 | Framer Motion polish, Lottie celebrations, custom playful styling, color/typography pass |
-| **4. PDF support** | 4 | Upload, parse, page-aware sessions, inline PDF render |
-| **5. YouTube playlist support** | 4 | Multi-video resource, per-video sub-sessions |
-| **6. Mobile responsive + onboarding** | 4 | Phone-friendly layouts, first-run flow |
-| **7. Polish + README + maybe deploy** | 6 | Bug bash, empty states, screenshots, deploy if time allows |
+| Phase | Hours | Deliverable | Status |
+|---|---|---|---|
+| **0. Setup** | 3 | Next.js + TS + Tailwind + shadcn + Drizzle + Neon + AI SDK plumbing; `.env` config; basic layout shell | ✅ Done (2026-04-27) — shadcn deferred until phase 1+ when a primitive is actually needed |
+| **1. Text + YouTube video flow** | 8 | End-to-end: paste URL or text → LLM breakdown → session list → mark complete | ⏳ Next |
+| **2. Gamification core** | 5 | XP, level, streak, dashboard, basic transitions | |
+| **3. The "fun" pass** | 8 | Framer Motion polish, Lottie celebrations, custom playful styling, color/typography pass | |
+| **4. PDF support** | 4 | Upload, parse, page-aware sessions, inline PDF render | |
+| **5. YouTube playlist support** | 4 | Multi-video resource, per-video sub-sessions | |
+| **6. Mobile responsive + onboarding** | 4 | Phone-friendly layouts, first-run flow | |
+| **7. Polish + README + maybe deploy** | 6 | Bug bash, empty states, screenshots, deploy if time allows | |
 
 **Total: ~42h.** Phases 1–3 are the demo-able core. If time runs short, drop playlist before PDF (PDFs are more useful day-to-day).
 

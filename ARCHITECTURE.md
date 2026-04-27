@@ -4,6 +4,23 @@ System design for Task Gamifier. Pairs with `PLAN.md` (product) and `DECISIONS.m
 
 ---
 
+## Implementation status
+
+| Subsystem | Status | Notes |
+|---|---|---|
+| Project scaffolding | ✅ Phase 0 | Next 15.5 + React 19 + TS strict (`noUncheckedIndexedAccess`) + `@/` alias |
+| Tailwind + tokens | ✅ Phase 0 | Custom palette (`ink`/`cream`/`mint`/`coral`/`sun`/`sky`), `font-display`/`font-body`, `rounded-chunky`, `shadow-chunky`. shadcn primitives not installed yet — will be pulled in as needed during phase 1+ |
+| Drizzle schema + migrations | ✅ Phase 0 | `src/server/db/schema.ts`; first migration `drizzle/0000_tough_night_nurse.sql` applied to Neon |
+| DB client + queries | ✅ Phase 0 | `node-postgres` Pool, dev-mode global cache; `getCurrentUser()` stub in `queries.ts` |
+| Seed (hardcoded user) | ✅ Phase 0 | `npm run db:seed` — idempotent insert of `USER_ID` |
+| LLM provider abstraction | ✅ Phase 0 (stub) | `src/server/llm/provider.ts` — env-driven switch; `breakdown.ts`/`prompts.ts` land in phase 1 |
+| Ingest pipelines | ⏳ Phase 1 (text + youtube) / Phase 4 (pdf) | |
+| Server actions | ⏳ Phase 1 onward | |
+| App shell | ✅ Phase 0 (placeholder) | `src/app/layout.tsx` + `page.tsx` — landing copy only; real dashboard comes in phase 2 |
+| Animations / Lottie / Zustand | ⏳ Phase 3 | Not yet installed |
+
+---
+
 ## High-level shape
 
 ```
@@ -51,73 +68,80 @@ Single Next.js process. Three logical subsystems (ingest, llm, db) live under `s
 
 ## Data model (Drizzle)
 
+Live source of truth: `src/server/db/schema.ts`. Shape as implemented:
+
 ```ts
-// src/server/db/schema.ts (sketch — final shape lives in code)
+// enums
+sourceTypeEnum     = "text" | "youtube_video" | "youtube_playlist" | "pdf"
+skillLevelEnum     = "beginner" | "intermediate" | "advanced"
+resourceStatusEnum = "processing" | "ready" | "completed" | "failed"
+                     // (named resource_status, not status, to avoid pg keyword collision)
 
-export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  xp: integer("xp").notNull().default(0),
-  level: integer("level").notNull().default(1),
-  currentStreak: integer("current_streak").notNull().default(0),
-  longestStreak: integer("longest_streak").notNull().default(0),
-  lastActiveDate: date("last_active_date"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+users {
+  id uuid pk default random
+  name text
+  xp int default 0
+  level int default 1
+  currentStreak int default 0
+  longestStreak int default 0
+  lastActiveDate date  nullable
+  createdAt timestamptz default now
+}
 
-export const resources = pgTable("resources", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => users.id),
-  title: text("title").notNull(),
-  sourceType: pgEnum("source_type", [
-    "text", "youtube_video", "youtube_playlist", "pdf",
-  ])("source_type").notNull(),
-  sourceUrlOrPath: text("source_url_or_path"),
-  rawContent: text("raw_content"),       // extracted normalized text
-  skillLevel: pgEnum("skill_level", [
-    "beginner", "intermediate", "advanced",
-  ])("skill_level").notNull(),
-  status: pgEnum("status", [
-    "processing", "ready", "completed", "failed",
-  ])("status").notNull().default("processing"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+resources {
+  id uuid pk default random
+  userId uuid → users.id  ON DELETE CASCADE
+  title text
+  sourceType sourceTypeEnum
+  sourceUrlOrPath text  nullable
+  rawContent text  nullable           // extracted normalized text
+  skillLevel skillLevelEnum
+  status resourceStatusEnum default "processing"
+  errorMessage text  nullable         // populated when status = "failed"
+  createdAt timestamptz default now
+}
 
-export const sessions = pgTable("sessions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  resourceId: uuid("resource_id").notNull().references(() => resources.id, { onDelete: "cascade" }),
-  orderIndex: integer("order_index").notNull(),
-  title: text("title").notNull(),
-  focusGoal: text("focus_goal").notNull(),
-  learningObjectives: jsonb("learning_objectives").$type<string[]>().notNull(),
-  keyConcepts: jsonb("key_concepts").$type<string[]>().notNull(),
-  outcomeStatement: text("outcome_statement").notNull(),
-  estimatedMinutes: integer("estimated_minutes").notNull(),
-  sourceLocator: jsonb("source_locator").$type<SourceLocator>().notNull(),
-  completedAt: timestamp("completed_at"),
-  reflectionNotes: text("reflection_notes"),
-  xpValue: integer("xp_value").notNull(),
-});
+sessions {
+  id uuid pk default random
+  resourceId uuid → resources.id  ON DELETE CASCADE
+  orderIndex int
+  title text
+  focusGoal text
+  learningObjectives jsonb<string[]>
+  keyConcepts jsonb<string[]>
+  outcomeStatement text
+  estimatedMinutes int
+  sourceLocator jsonb<SourceLocator>
+  completedAt timestamptz  nullable
+  reflectionNotes text  nullable
+  xpValue int
+}
 
-export const xpEvents = pgTable("xp_events", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => users.id),
-  sessionId: uuid("session_id").references(() => sessions.id),
-  delta: integer("delta").notNull(),
-  reason: text("reason").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+xpEvents {
+  id uuid pk default random
+  userId uuid → users.id  ON DELETE CASCADE
+  sessionId uuid → sessions.id  ON DELETE SET NULL  nullable
+  delta int
+  reason text
+  createdAt timestamptz default now
+}
 
 type SourceLocator =
-  | { kind: "youtube"; startSeconds: number; endSeconds: number }
+  | { kind: "youtube"; videoId?: string; startSeconds: number; endSeconds: number }
   | { kind: "pdf"; pages: number[] }
   | { kind: "text"; range: [number, number] };
 ```
 
+Notes vs. the original sketch:
+- Added `resources.errorMessage` so failed ingests/breakdowns can surface a reason (referenced in Error handling boundaries below).
+- `xpEvents.sessionId` is `ON DELETE SET NULL` so XP history survives a resource delete (cascade only flows resource → sessions).
+- All `createdAt`/`completedAt` columns are `timestamptz`.
+- Inferred row/insert types are exported alongside each table (`User`, `NewUser`, …) for use in queries and actions.
+
 Relationships:
 - `users 1—N resources 1—N sessions`
 - `users 1—N xpEvents`, `sessions 1—N xpEvents` (one event per completion)
-- All FK cascades on resource → sessions delete
+- Cascade flows down from `users` → `resources` → `sessions`. `xpEvents.sessionId` SET NULL preserves XP history.
 
 ---
 
@@ -173,15 +197,27 @@ type NormalizedContent =
   | { kind: "pdf"; text: string; pageBoundaries: number[]; title: string };
 ```
 
-Provider selection (`src/server/llm/provider.ts`):
+Provider selection (`src/server/llm/provider.ts`, implemented in Phase 0):
 ```ts
-const provider = process.env.LLM_PROVIDER ?? "anthropic";
-const model = match(provider)
-  .with("anthropic", () => anthropic("claude-sonnet-4-6"))
-  .with("openai", () => openai("gpt-4o"))
-  .with("google", () => google("gemini-1.5-pro"))
-  .exhaustive();
+// LLM_PROVIDER selects the SDK; LLM_MODEL optionally overrides the per-provider default.
+const DEFAULTS = {
+  anthropic: "claude-sonnet-4-5",  // bump to claude-sonnet-4-6 once verified live
+  openai:    "gpt-4o",
+  google:    "gemini-1.5-pro",
+};
+
+export function getModel(): LanguageModel {
+  const provider = (process.env.LLM_PROVIDER ?? "anthropic") as LlmProvider;
+  const id = process.env.LLM_MODEL ?? DEFAULTS[provider];
+  switch (provider) {
+    case "anthropic": return anthropic(id);
+    case "openai":    return openai(id);
+    case "google":    return google(id);
+  }
+}
 ```
+
+`breakdown.ts` (the actual `generateObject` call) and `prompts.ts` (the per-skill-level system prompt templates) are deferred to phase 1.
 
 ---
 
@@ -253,6 +289,15 @@ There isn't any in v1. Resource creation runs synchronously in the server action
 - **Integration**: ingest modules against fixture inputs (a checked-in transcript, a checked-in PDF).
 - **E2E**: skipped for v1 unless time permits. Manual smoke testing via the running dev app.
 - **LLM**: not mocked. A small `npm run test:llm` script runs the breakdown against a tiny fixture using whichever provider is configured. Cheap.
+
+---
+
+## Local dev plumbing (Phase 0)
+
+- **Env loading**: Next.js auto-loads `.env.local`. Standalone scripts (`drizzle.config.ts`, `src/server/db/migrate.ts`, `src/server/db/seed.ts`) call `dotenv.config({ path: ".env.local" })` at the top — they don't see Next's loader.
+- **Postgres pool**: `src/server/db/client.ts` keeps a single `Pool` on `globalThis` in non-prod so HMR doesn't leak connections. Production gets a fresh pool per process.
+- **SSL**: `ssl: { rejectUnauthorized: false }` for Neon. The current `pg` deprecation warning about `sslmode=require` semantics is benign; can switch to `uselibpqcompat=true&sslmode=require` later if it gets noisy.
+- **npm scripts**: `dev`, `build`, `start`, `lint`, `typecheck`, `db:generate`, `db:migrate`, `db:studio`, `db:seed` — all listed in `CLAUDE.md`.
 
 ---
 
