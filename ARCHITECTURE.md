@@ -17,7 +17,12 @@ System design for Task Gamifier. Pairs with `PLAN.md` (product) and `DECISIONS.m
 | LLM provider abstraction | ✅ Phase 1 | `provider.ts` (env-driven, default `claude-sonnet-4-6`), `prompts.ts` (skill-level system prompts), `breakdown.ts` (`generateObject` with separate Zod schemas per source type) |
 | Ingest pipelines | ✅ Phase 1 (text + youtube) / ⏳ Phase 4 (pdf) | `ingest/text.ts` (passthrough), `ingest/youtube.ts` (yt-dlp shell + VTT parser, 30s segment merging). `NormalizedContent` + `TimestampedSegment` types in `ingest/types.ts` |
 | Server actions | ✅ Phase 1 | `actions/resources.ts` (`createResource`), `actions/sessions.ts` (`markSessionComplete`) |
-| App shell | ✅ Phase 1 | Home page with CTAs, resource list, resource detail, session detail — all functional. Real dashboard (Phase 2) replaces home page. |
+| XP + level math | ✅ Phase 2 | `src/lib/xp.ts` — `xpForSession`, `levelFromXp` (`max(1, floor(sqrt(xp/100)))`), `progressToNextLevel` |
+| Streak logic | ✅ Phase 2 | `src/lib/streak.ts` — `computeStreakUpdate`: gap=1 → increment, gap>1 → reset to 1 |
+| Gamification components | ✅ Phase 2 | `src/components/gamification/` — `XpBar`, `StreakBadge`, `LevelBadge` |
+| Dashboard (real data) | ✅ Phase 2 | `getDashboardData()` in `queries.ts`; `app/page.tsx` shows stat cards + next-up sessions |
+| App shell / header | ✅ Phase 2 | `layout.tsx` header with streak, level badge, XP bar on every page |
+| `markSessionComplete` (XP+streak) | ✅ Phase 2 | Single DB transaction: update session, insert `xp_events`, update `users` (xp, level, streak) |
 | Animations / Lottie / Zustand | ⏳ Phase 3 | Not yet installed |
 
 ---

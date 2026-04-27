@@ -57,6 +57,41 @@ export async function getResourceWithSessions(resourceId: string) {
   return { resource, sessions: sessionList };
 }
 
+export async function getDashboardData() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  const activeResources = await db
+    .select()
+    .from(resources)
+    .where(and(eq(resources.userId, USER_ID), eq(resources.status, "ready")))
+    .orderBy(resources.createdAt);
+
+  if (activeResources.length === 0) return { user, nextUp: [] };
+
+  const allSessions = await db
+    .select()
+    .from(sessions)
+    .innerJoin(resources, eq(sessions.resourceId, resources.id))
+    .where(and(eq(resources.userId, USER_ID), eq(resources.status, "ready")))
+    .orderBy(asc(sessions.orderIndex));
+
+  const nextUp: Array<{
+    session: typeof allSessions[number]["sessions"];
+    resource: typeof allSessions[number]["resources"];
+  }> = [];
+
+  const seenResource = new Set<string>();
+  for (const row of allSessions) {
+    if (row.sessions.completedAt) continue;
+    if (seenResource.has(row.resources.id)) continue;
+    seenResource.add(row.resources.id);
+    nextUp.push({ session: row.sessions, resource: row.resources });
+  }
+
+  return { user, nextUp };
+}
+
 export async function getSession(sessionId: string) {
   const session = await db
     .select()

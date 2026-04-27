@@ -18,10 +18,10 @@ These are required for the app to be demo-able and personally useful. ~24 hours 
 | ~~M6~~ ✅ | **Session detail flashcard** | 1 | Focus goal, objectives, key concepts, outcome statement |
 | ~~M7~~ ✅ | **Embedded YouTube player** cued to assigned timestamps | 1 | iframe with start/end params |
 | ~~M8~~ ✅ | **Mark session complete** (self-report) | 1 | Form action → DB update → redirect; optional reflection notes (S6 pulled in early) |
-| M9 | **XP awarded on completion** | 2 | Scaled by `estimated_minutes` |
-| M10 | **Decorative level** (numbers go up) | 2 | `level = floor(sqrt(xp / 100))` or similar |
-| M11 | **Daily streak** with strict reset | 2 | First completion of the day increments; missed day = 0 |
-| M12 | **Dashboard** with streak, XP, "next up" sessions | 2 | Single landing screen, primary CTA = continue |
+| ~~M9~~ ✅ | **XP awarded on completion** | 2 | `xpForSession(estimatedMinutes) = estimatedMinutes × 10`. Inserted into `xp_events`, user totals updated in same transaction. |
+| ~~M10~~ ✅ | **Decorative level** (numbers go up) | 2 | `level = max(1, floor(sqrt(xp / 100)))`. `progressToNextLevel()` drives XP bar in header + dashboard. |
+| ~~M11~~ ✅ | **Daily streak** with strict reset | 2 | `computeStreakUpdate()` in `src/lib/streak.ts`. Gap > 1 day resets to 1. Updated in same transaction as XP. |
+| ~~M12~~ ✅ | **Dashboard** with streak, XP, "next up" sessions | 2 | `getDashboardData()` query. Real stat cards + next incomplete session per active resource. Header on every page shows streak/level/XP bar. |
 | M13 | **Playful animations** (Framer Motion celebrations) | 3 | Confetti / XP burst / level-up overlay |
 | M14 | **Custom playful styling** (colors, typography) | 3 | Not stock shadcn; takes shadcn and themes it up |
 | M15 | **Lottie celebrations** | 3 | At least 1 reusable celebration animation |

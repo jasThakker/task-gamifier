@@ -1,6 +1,6 @@
 import { execFile } from "child_process";
 import { promisify } from "util";
-import { readFile, unlink } from "fs/promises";
+import { readFile, unlink, readdir } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
 import type { NormalizedContent, TimestampedSegment } from "@/server/ingest/types";
@@ -81,7 +81,6 @@ export async function ingestYouTube(
 ): Promise<Extract<NormalizedContent, { kind: "youtube" }>> {
   const videoId = extractVideoId(url);
   const outTemplate = join(tmpdir(), `tg-${videoId}.%(ext)s`);
-  const vttPath = join(tmpdir(), `tg-${videoId}.en.vtt`);
 
   let ytdlpPath: string;
   try {
@@ -96,16 +95,9 @@ export async function ingestYouTube(
   let metadata: { title: string; duration: number };
   try {
     const { stdout } = await execFileAsync(ytdlpPath, [
-      "--write-auto-sub",
-      "--sub-lang",
-      "en",
-      "--sub-format",
-      "vtt",
       "--skip-download",
       "--print",
       "%(title)s\n%(duration)s",
-      "--output",
-      outTemplate,
       "--",
       videoId,
     ]);
@@ -117,17 +109,49 @@ export async function ingestYouTube(
     );
   }
 
+  try {
+    await execFileAsync(ytdlpPath, [
+      "--write-auto-sub",
+      "--sub-lang",
+      "en",
+      "--sub-format",
+      "vtt",
+      "--skip-download",
+      "--output",
+      outTemplate,
+      "--",
+      videoId,
+    ]);
+  } catch (err) {
+    throw new Error(
+      `yt-dlp subtitle download failed: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
+
+  // yt-dlp names auto-generated captions with an "a." prefix (e.g. tg-{id}.a.en.vtt)
+  // so we find the actual file rather than assuming the exact name.
+  const tmp = tmpdir();
+  const prefix = `tg-${videoId}`;
+  const tmpFiles = await readdir(tmp);
+  const vttFile = tmpFiles.find((f) => f.startsWith(prefix) && f.endsWith(".vtt"));
+
+  if (!vttFile) {
+    throw new Error(
+      "No English captions found for this video. Try a video with auto-generated or manual captions."
+    );
+  }
+
+  const actualVttPath = join(tmp, vttFile);
   let vttContent: string;
   try {
-    vttContent = await readFile(vttPath, "utf-8");
+    vttContent = await readFile(actualVttPath, "utf-8");
   } catch {
     throw new Error(
       "No English captions found for this video. Try a video with auto-generated or manual captions."
     );
   }
 
-  // Clean up the subtitle file
-  await unlink(vttPath).catch(() => undefined);
+  await unlink(actualVttPath).catch(() => undefined);
 
   const rawSegments = parseVtt(vttContent);
   if (rawSegments.length === 0) {

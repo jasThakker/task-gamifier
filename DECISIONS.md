@@ -235,6 +235,25 @@ Format per entry: **Decision · Context · Alternatives · Reasoning · Tradeoff
 
 ---
 
+## D-022 · Don't store rawContent for YouTube resources
+
+- **Decision**: Set `rawContent = null` for YouTube video resources. Only text resources store `rawContent`.
+- **Context**: Phase 1 stored the full joined transcript string in `resources.rawContent` for all source types. Phase 2 audit revealed it is only consumed for text resources (the `TextExcerpt` component slices it by character range from `source_locator`). YouTube sessions use `startSeconds`/`endSeconds` locators to cue the embedded player — `rawContent` is never read back.
+- **Alternatives considered**: Keep storing it as a re-breakdown cache (avoids re-fetching from YouTube if the user regenerates).
+- **Reasoning**: Unused data on a path that doesn't need it. A 2-hour transcript is ~80KB; pointless to store when the locators are timestamps not character offsets. If re-breakdown is added (FEATURES.md C5), we re-fetch — that's the right trade-off.
+- **Tradeoffs**: Re-running breakdown on a YouTube resource would require a fresh yt-dlp call. Acceptable; C5 is post-MVP.
+
+---
+
+## D-023 · yt-dlp `--print` flag skips subtitle file writes
+
+- **Decision**: Split the yt-dlp call in `ingestYouTube` into two separate `execFile` calls — one for metadata (`--print`), one for subtitle download (`--write-auto-sub`).
+- **Context**: The original Phase 1 code combined both in a single command. Newer yt-dlp versions treat `--print` as a "print-only" mode that skips all file-writing side effects including `--write-auto-sub`. This caused a silent failure where metadata was fetched correctly but no `.vtt` file was written, producing a misleading "No English captions found" error.
+- **Reasoning**: Separating the concerns makes each call's intent unambiguous and robust to yt-dlp version changes.
+- **Tradeoffs**: Two network round-trips to YouTube instead of one. In practice yt-dlp is not the bottleneck (the LLM call is), so this is negligible.
+
+---
+
 ## How to update this doc
 
 When a decision changes:

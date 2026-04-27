@@ -68,7 +68,7 @@ src/
   components/           Reusable React components
     ui/                 shadcn primitives (generated)
     cards/              Flashcard / session components
-    gamification/       XP bar, level badge, streak indicator
+    gamification/       XpBar, LevelBadge, StreakBadge — live as of Phase 2
   server/
     actions/            Server actions (mutations)
     db/

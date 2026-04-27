@@ -103,7 +103,7 @@ export async function createResource(
       await db.transaction(async (tx) => {
         await tx
           .update(resources)
-          .set({ status: "ready", rawContent: ytContent.transcript.map((s) => s.text).join(" ") })
+          .set({ status: "ready" })
           .where(eq(resources.id, resourceId!));
         await tx.insert(sessions).values(newSessions);
       });
