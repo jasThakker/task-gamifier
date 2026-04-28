@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/server/db/client";
 import { resources, sessions } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
-import { USER_ID } from "@/lib/constants";
+import { requireUserId } from "@/lib/auth";
 
 const SAMPLE_TEXT = `The Science of Effective Learning
 
@@ -20,10 +20,12 @@ Interleaving and Elaboration
 Interleaving — mixing different topics or problem types in one session — feels harder but produces better long-term retention than blocked practice. Elaborative interrogation — asking yourself why and how questions — connects new information to what you already know, creating richer and more durable memory traces.`;
 
 export async function seedSampleResource() {
+  const userId = await requireUserId();
+
   const existing = await db
     .select({ id: resources.id })
     .from(resources)
-    .where(eq(resources.userId, USER_ID))
+    .where(eq(resources.userId, userId))
     .limit(1);
 
   if (existing.length > 0) {
@@ -33,7 +35,7 @@ export async function seedSampleResource() {
   const [resource] = await db
     .insert(resources)
     .values({
-      userId: USER_ID,
+      userId,
       title: "The Science of Effective Learning",
       sourceType: "text",
       skillLevel: "beginner",

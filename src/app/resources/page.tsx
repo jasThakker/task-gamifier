@@ -2,9 +2,11 @@ import Link from "next/link";
 import { getAllResources } from "@/server/db/queries";
 import { buttonVariants } from "@/components/ui/button";
 import { ResourceList } from "@/components/resource-list";
+import { requireUserId } from "@/lib/auth";
 
 export default async function ResourcesPage() {
-  const allResources = await getAllResources();
+  const userId = await requireUserId();
+  const allResources = await getAllResources(userId);
 
   return (
     <div className="space-y-8">

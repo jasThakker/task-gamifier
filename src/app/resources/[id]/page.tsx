@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { CelebrationTrigger } from "@/components/gamification/celebration-trigger";
 import { DeleteResourceButton } from "@/components/delete-resource-button";
+import { requireUserId } from "@/lib/auth";
 
 const SOURCE_LABELS: Record<string, string> = {
   text: "Text",
@@ -19,7 +20,8 @@ type Props = { params: Promise<{ id: string }> };
 
 export default async function ResourcePage({ params }: Props) {
   const { id } = await params;
-  const data = await getResourceWithSessions(id);
+  const userId = await requireUserId();
+  const data = await getResourceWithSessions(id, userId);
   if (!data) notFound();
 
   const { resource, sessions } = data;

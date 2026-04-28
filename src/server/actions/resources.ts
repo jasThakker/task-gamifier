@@ -9,7 +9,7 @@ import { ingestText } from "@/server/ingest/text";
 import { ingestYouTube } from "@/server/ingest/youtube";
 import { ingestPDF } from "@/server/ingest/pdf";
 import { runBreakdown } from "@/server/llm/breakdown";
-import { USER_ID } from "@/lib/constants";
+import { requireUserId } from "@/lib/auth";
 
 export type CreateResourceState = { error: string } | null;
 
@@ -35,6 +35,7 @@ export async function createResource(
   _prevState: CreateResourceState,
   formData: FormData
 ): Promise<CreateResourceState> {
+  const userId = await requireUserId();
   const sourceType = formData.get("sourceType");
 
   let resourceId: string | null = null;
@@ -54,13 +55,7 @@ export async function createResource(
 
       const [inserted] = await db
         .insert(resources)
-        .values({
-          userId: USER_ID,
-          title,
-          sourceType: "text",
-          skillLevel,
-          status: "processing",
-        })
+        .values({ userId, title, sourceType: "text", skillLevel, status: "processing" })
         .returning({ id: resources.id });
 
       resourceId = inserted?.id ?? null;
@@ -92,7 +87,7 @@ export async function createResource(
       const [inserted] = await db
         .insert(resources)
         .values({
-          userId: USER_ID,
+          userId,
           title: ytContent.title,
           sourceType: "youtube_video",
           sourceUrlOrPath: url,
@@ -136,13 +131,7 @@ export async function createResource(
 
       const [inserted] = await db
         .insert(resources)
-        .values({
-          userId: USER_ID,
-          title: pdfContent.title,
-          sourceType: "pdf",
-          skillLevel,
-          status: "processing",
-        })
+        .values({ userId, title: pdfContent.title, sourceType: "pdf", skillLevel, status: "processing" })
         .returning({ id: resources.id });
 
       resourceId = inserted?.id ?? null;
@@ -180,7 +169,8 @@ export async function createResource(
 }
 
 export async function deleteResource(formData: FormData): Promise<void> {
+  const userId = await requireUserId();
   const id = z.string().uuid().parse(formData.get("resourceId"));
-  await db.delete(resources).where(and(eq(resources.id, id), eq(resources.userId, USER_ID)));
+  await db.delete(resources).where(and(eq(resources.id, id), eq(resources.userId, userId)));
   redirect("/resources");
 }

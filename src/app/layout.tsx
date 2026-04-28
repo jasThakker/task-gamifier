@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Nunito } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { getCurrentUserId } from "@/lib/auth";
 import { getCurrentUser } from "@/server/db/queries";
+import { signOut } from "@/server/actions/auth";
 import { progressToNextLevel } from "@/lib/xp";
 import { Providers } from "@/components/providers";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -10,6 +12,7 @@ import { StreakBadge } from "@/components/gamification/streak-badge";
 import { LevelBadge } from "@/components/gamification/level-badge";
 import { XpBar } from "@/components/gamification/xp-bar";
 import { CelebrationOverlay } from "@/components/gamification/celebration-overlay";
+import { buttonVariants } from "@/components/ui/button";
 import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"], variable: "--font-sans", weight: ["400", "600", "700", "800", "900"] });
@@ -20,7 +23,8 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser();
+  const userId = await getCurrentUserId();
+  const user = userId ? await getCurrentUser(userId) : null;
   const xpProgress = user ? progressToNextLevel(user.xp) : null;
 
   return (
@@ -32,14 +36,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Link href="/" className="text-lg font-extrabold tracking-tight hover:opacity-80 transition-opacity shrink-0">
                 task gamifier
               </Link>
-              <nav className="flex items-center gap-2 sm:gap-4">
-                <Link href="/resources/new" className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
-                  + new
-                </Link>
-                <Link href="/resources" className="hidden sm:block text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
-                  resources
-                </Link>
-              </nav>
+              {user && (
+                <nav className="flex items-center gap-2 sm:gap-4">
+                  <Link href="/resources/new" className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
+                    + new
+                  </Link>
+                  <Link href="/resources" className="hidden sm:block text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
+                    resources
+                  </Link>
+                </nav>
+              )}
               <div className="flex items-center gap-2 sm:gap-3">
                 {user && xpProgress && (
                   <>
@@ -55,6 +61,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   </>
                 )}
                 <ThemeToggle />
+                {user && (
+                  <form action={signOut}>
+                    <button type="submit" className={buttonVariants({ variant: "ghost", size: "sm", className: "text-xs text-muted-foreground" })}>
+                      Sign out
+                    </button>
+                  </form>
+                )}
               </div>
             </header>
             <main className="py-6 sm:py-8">{children}</main>

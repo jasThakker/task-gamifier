@@ -1,25 +1,24 @@
 import { eq, and, asc } from "drizzle-orm";
 import { db } from "@/server/db/client";
 import { users, resources, sessions } from "@/server/db/schema";
-import { USER_ID } from "@/lib/constants";
 
-export async function getCurrentUser() {
-  const rows = await db.select().from(users).where(eq(users.id, USER_ID));
+export async function getCurrentUser(userId: string) {
+  const rows = await db.select().from(users).where(eq(users.id, userId));
   return rows[0] ?? null;
 }
 
-export async function getAllResources() {
+export async function getAllResources(userId: string) {
   const allResources = await db
     .select()
     .from(resources)
-    .where(eq(resources.userId, USER_ID))
+    .where(eq(resources.userId, userId))
     .orderBy(resources.createdAt);
 
   const allSessions = await db
     .select({ resourceId: sessions.resourceId, completedAt: sessions.completedAt })
     .from(sessions)
     .innerJoin(resources, eq(sessions.resourceId, resources.id))
-    .where(eq(resources.userId, USER_ID));
+    .where(eq(resources.userId, userId));
 
   const countsByResource = allSessions.reduce<
     Record<string, { total: number; completed: number }>
@@ -38,11 +37,11 @@ export async function getAllResources() {
   }));
 }
 
-export async function getResourceWithSessions(resourceId: string) {
+export async function getResourceWithSessions(resourceId: string, userId: string) {
   const resource = await db
     .select()
     .from(resources)
-    .where(and(eq(resources.id, resourceId), eq(resources.userId, USER_ID)))
+    .where(and(eq(resources.id, resourceId), eq(resources.userId, userId)))
     .limit(1)
     .then((rows) => rows[0] ?? null);
 
@@ -57,14 +56,14 @@ export async function getResourceWithSessions(resourceId: string) {
   return { resource, sessions: sessionList };
 }
 
-export async function getDashboardData() {
-  const user = await getCurrentUser();
+export async function getDashboardData(userId: string) {
+  const user = await getCurrentUser(userId);
   if (!user) return null;
 
   const activeResources = await db
     .select()
     .from(resources)
-    .where(and(eq(resources.userId, USER_ID), eq(resources.status, "ready")))
+    .where(and(eq(resources.userId, userId), eq(resources.status, "ready")))
     .orderBy(resources.createdAt);
 
   if (activeResources.length === 0) return { user, nextUp: [], hasResources: false };
@@ -73,8 +72,15 @@ export async function getDashboardData() {
     .select()
     .from(sessions)
     .innerJoin(resources, eq(sessions.resourceId, resources.id))
-    .where(and(eq(resources.userId, USER_ID), eq(resources.status, "ready")))
+    .where(and(eq(resources.userId, userId), eq(resources.status, "ready")))
     .orderBy(asc(sessions.orderIndex));
+
+  const hasResources = await db
+    .select({ id: resources.id })
+    .from(resources)
+    .where(eq(resources.userId, userId))
+    .limit(1)
+    .then((rows) => rows.length > 0);
 
   const nextUp: Array<{
     session: typeof allSessions[number]["sessions"];
@@ -89,10 +95,10 @@ export async function getDashboardData() {
     nextUp.push({ session: row.sessions, resource: row.resources });
   }
 
-  return { user, nextUp, hasResources: true };
+  return { user, nextUp, hasResources };
 }
 
-export async function getSession(sessionId: string) {
+export async function getSession(sessionId: string, userId: string) {
   const session = await db
     .select()
     .from(sessions)
@@ -105,7 +111,7 @@ export async function getSession(sessionId: string) {
   const resource = await db
     .select()
     .from(resources)
-    .where(and(eq(resources.id, session.resourceId), eq(resources.userId, USER_ID)))
+    .where(and(eq(resources.id, session.resourceId), eq(resources.userId, userId)))
     .limit(1)
     .then((rows) => rows[0] ?? null);
 

@@ -1,8 +1,10 @@
 import { getDashboardData } from "@/server/db/queries";
 import { DashboardContent } from "@/components/dashboard-content";
+import { requireUserId } from "@/lib/auth";
 
 export default async function HomePage() {
-  const data = await getDashboardData();
+  const userId = await requireUserId();
+  const data = await getDashboardData(userId);
 
   if (!data) {
     return (

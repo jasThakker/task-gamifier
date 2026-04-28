@@ -37,6 +37,8 @@ export const resourceStatusEnum = pgEnum("resource_status", [
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  username: text("username").unique(),
+  passwordHash: text("password_hash"),
   xp: integer("xp").notNull().default(0),
   level: integer("level").notNull().default(1),
   currentStreak: integer("current_streak").notNull().default(0),

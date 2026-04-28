@@ -7,12 +7,17 @@ import { sessions, users, xpEvents } from "@/server/db/schema";
 import { getSession, getCurrentUser } from "@/server/db/queries";
 import { xpForSession, levelFromXp } from "@/lib/xp";
 import { computeStreakUpdate } from "@/lib/streak";
+import { requireUserId } from "@/lib/auth";
 
 export async function markSessionComplete(formData: FormData): Promise<void> {
+  const userId = await requireUserId();
   const sessionId = formData.get("sessionId");
   if (typeof sessionId !== "string") throw new Error("Missing sessionId");
 
-  const [row, user] = await Promise.all([getSession(sessionId), getCurrentUser()]);
+  const [row, user] = await Promise.all([
+    getSession(sessionId, userId),
+    getCurrentUser(userId),
+  ]);
   if (!row) throw new Error("Session not found");
   if (!user) throw new Error("User not found");
 
@@ -70,10 +75,14 @@ export async function markSessionComplete(formData: FormData): Promise<void> {
 }
 
 export async function unmarkSessionComplete(formData: FormData): Promise<void> {
+  const userId = await requireUserId();
   const sessionId = formData.get("sessionId");
   if (typeof sessionId !== "string") throw new Error("Missing sessionId");
 
-  const [row, user] = await Promise.all([getSession(sessionId), getCurrentUser()]);
+  const [row, user] = await Promise.all([
+    getSession(sessionId, userId),
+    getCurrentUser(userId),
+  ]);
   if (!row) throw new Error("Session not found");
   if (!user) throw new Error("User not found");
 

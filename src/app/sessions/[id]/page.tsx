@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/server/db/queries";
 import { markSessionComplete, unmarkSessionComplete } from "@/server/actions/sessions";
+import { requireUserId } from "@/lib/auth";
 import { YouTubeEmbed } from "@/components/youtube-embed";
 import { TextExcerpt } from "@/components/text-excerpt";
 import { PdfExcerpt } from "@/components/pdf-excerpt";
@@ -14,7 +15,8 @@ type Props = { params: Promise<{ id: string }> };
 
 export default async function SessionPage({ params }: Props) {
   const { id } = await params;
-  const data = await getSession(id);
+  const userId = await requireUserId();
+  const data = await getSession(id, userId);
   if (!data) notFound();
 
   const { session, resource } = data;
