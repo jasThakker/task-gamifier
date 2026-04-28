@@ -38,6 +38,12 @@ function formatText(content: Extract<NormalizedContent, { kind: "text" }>): stri
   return content.text;
 }
 
+function formatPDF(content: Extract<NormalizedContent, { kind: "pdf" }>): string {
+  return content.pageTexts
+    .map((text, i) => `--- Page ${i + 1} ---\n${text}`)
+    .join("\n\n");
+}
+
 export function buildPrompt(
   content: NormalizedContent,
   skillLevel: SkillLevel
@@ -58,6 +64,9 @@ ${
     ? `- startSeconds: integer — the transcript timestamp where this session starts
 - endSeconds: integer — the transcript timestamp where this session ends
 Timestamps must come directly from the transcript. Do not invent timestamps.`
+    : content.kind === "pdf"
+    ? `- pages: array of 1-indexed page numbers this session covers (e.g. [1, 2, 3])
+Pages must come from the document. Do not invent page numbers.`
     : ""
 }
 
@@ -75,6 +84,15 @@ Skill level: ${skillLevel}
 
 Transcript (format: [M:SS] text):
 ${formatTranscript(content)}`
+      : content.kind === "pdf"
+      ? `Break this PDF document into study sessions.
+
+Title: ${content.title}
+Total pages: ${content.totalPages}
+Skill level: ${skillLevel}
+
+Document (each page is marked with "--- Page N ---"):
+${formatPDF(content)}`
       : `Break this learning text into study sessions.
 
 Title: ${content.title}

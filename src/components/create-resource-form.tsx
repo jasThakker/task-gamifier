@@ -30,7 +30,7 @@ export function CreateResourceForm() {
     createResource,
     null
   );
-  const [tab, setTab] = useState<"text" | "youtube_video">("text");
+  const [tab, setTab] = useState<"text" | "youtube_video" | "pdf">("text");
   const [skillLevel, setSkillLevel] = useState("intermediate");
 
   return (
@@ -42,7 +42,7 @@ export function CreateResourceForm() {
 
       <Tabs
         value={tab}
-        onValueChange={(v) => setTab(v as "text" | "youtube_video")}
+        onValueChange={(v) => setTab(v as "text" | "youtube_video" | "pdf")}
       >
         <TabsList className="w-full">
           <TabsTrigger value="text" className="flex-1">
@@ -50,6 +50,9 @@ export function CreateResourceForm() {
           </TabsTrigger>
           <TabsTrigger value="youtube_video" className="flex-1">
             YouTube video
+          </TabsTrigger>
+          <TabsTrigger value="pdf" className="flex-1">
+            PDF
           </TabsTrigger>
         </TabsList>
 
@@ -94,6 +97,25 @@ export function CreateResourceForm() {
               Requires{" "}
               <code className="rounded bg-muted px-1 py-0.5 text-xs">yt-dlp</code>{" "}
               installed locally. The video must have English captions.
+            </p>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="pdf" className="space-y-4 pt-4">
+          <div className="space-y-2">
+            <label htmlFor="file" className="text-sm font-medium">
+              PDF file
+            </label>
+            <Input
+              id="file"
+              name="file"
+              type="file"
+              accept=".pdf,application/pdf"
+              required={tab === "pdf"}
+              className="cursor-pointer"
+            />
+            <p className="text-xs text-muted-foreground">
+              Text-based PDFs only — scanned or image-only PDFs won&apos;t work. Max 10 MB.
             </p>
           </div>
         </TabsContent>

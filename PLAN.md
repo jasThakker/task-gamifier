@@ -145,7 +145,7 @@ Cost expectation: Sonnet 4.6 on a 2-hour video transcript ≈ 30k–50k input to
 | **1. Text + YouTube video flow** | 8 | End-to-end: paste URL or text → LLM breakdown → session list → mark complete | ✅ Done (2026-04-27) — shadcn v4 (Base UI) + Tailwind v4 upgrade required mid-phase; text flow verified end-to-end |
 | **2. Gamification core** | 5 | XP, level, streak, dashboard, basic transitions | ✅ Done (2026-04-27) — XP/level/streak logic, markSessionComplete wired with DB transaction, real dashboard, header with stats. yt-dlp `--print` flag bug fixed (split into two calls). rawContent no longer stored for YouTube resources. |
 | **3. The "fun" pass** | 8 | Framer Motion polish, Lottie celebrations, custom playful styling, color/typography pass | ✅ Done (2026-04-27) — SessionFlashcard 3D flip, ResourceList stagger, CelebrationOverlay (Lottie burst + XP/level-up card), Zustand store for cross-component events, dark mode via next-themes, card-playful styling throughout. |
-| **4. PDF support** | 4 | Upload, parse, page-aware sessions, inline PDF render | |
+| **4. PDF support** | 4 | Upload, parse, page-aware sessions, inline PDF render | ✅ Done (2026-04-27) — pdf-parse v2 (`PDFParse` class), per-page text extraction, PDF tab in create form, `PdfExcerpt` component, `PdfSessionSchema` with `pages[]` locator in breakdown pipeline. |
 | **5. YouTube playlist support** | 4 | Multi-video resource, per-video sub-sessions | |
 | **6. Mobile responsive + onboarding** | 4 | Phone-friendly layouts, first-run flow | |
 | **7. Polish + README + maybe deploy** | 6 | Bug bash, empty states, screenshots, deploy if time allows | |

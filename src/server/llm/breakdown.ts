@@ -29,8 +29,22 @@ const YouTubeResponseSchema = z.object({
   sessions: z.array(YouTubeSessionSchema).min(1).max(40),
 });
 
+const PdfSessionSchema = z.object({
+  title: z.string().min(1),
+  focusGoal: z.string().min(1),
+  learningObjectives: z.array(z.string()).min(3).max(5),
+  keyConcepts: z.array(z.string()).min(1).max(8),
+  outcomeStatement: z.string().min(1),
+  estimatedMinutes: z.number().int().min(1).max(180),
+  pages: z.array(z.number().int().min(1)).min(1),
+});
+
 const TextResponseSchema = z.object({
   sessions: z.array(TextSessionSchema).min(1).max(40),
+});
+
+const PdfResponseSchema = z.object({
+  sessions: z.array(PdfSessionSchema).min(1).max(40),
 });
 
 type SkillLevel = "beginner" | "intermediate" | "advanced";
@@ -67,6 +81,30 @@ export async function runBreakdown(
         startSeconds: s.startSeconds,
         endSeconds: s.endSeconds,
       },
+      completedAt: null,
+      reflectionNotes: null,
+    }));
+  }
+
+  if (content.kind === "pdf") {
+    const { object } = await generateObject({
+      model,
+      schema: PdfResponseSchema,
+      system,
+      prompt: user,
+    });
+
+    return object.sessions.map((s, i) => ({
+      resourceId,
+      orderIndex: i,
+      title: s.title,
+      focusGoal: s.focusGoal,
+      learningObjectives: s.learningObjectives,
+      keyConcepts: s.keyConcepts,
+      outcomeStatement: s.outcomeStatement,
+      estimatedMinutes: s.estimatedMinutes,
+      xpValue: Math.ceil(s.estimatedMinutes * 10),
+      sourceLocator: { kind: "pdf" as const, pages: s.pages },
       completedAt: null,
       reflectionNotes: null,
     }));

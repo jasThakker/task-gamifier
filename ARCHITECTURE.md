@@ -15,7 +15,7 @@ System design for Task Gamifier. Pairs with `PLAN.md` (product) and `DECISIONS.m
 | DB client + queries | ✅ Phase 1 | `getCurrentUser()`, `getAllResources()`, `getResourceWithSessions()`, `getSession()` in `queries.ts` |
 | Seed (hardcoded user) | ✅ Phase 0 | `npm run db:seed` — idempotent insert of `USER_ID` |
 | LLM provider abstraction | ✅ Phase 1 | `provider.ts` (env-driven, default `claude-sonnet-4-6`), `prompts.ts` (skill-level system prompts), `breakdown.ts` (`generateObject` with separate Zod schemas per source type) |
-| Ingest pipelines | ✅ Phase 1 (text + youtube) / ⏳ Phase 4 (pdf) | `ingest/text.ts` (passthrough), `ingest/youtube.ts` (yt-dlp shell + VTT parser, 30s segment merging). `NormalizedContent` + `TimestampedSegment` types in `ingest/types.ts` |
+| Ingest pipelines | ✅ Phase 1 (text + youtube) / ✅ Phase 4 (pdf) | `ingest/text.ts` (passthrough), `ingest/youtube.ts` (yt-dlp shell + VTT parser, 30s segment merging), `ingest/pdf.ts` (pdf-parse v2 `PDFParse` class, per-page text). `NormalizedContent` + `TimestampedSegment` types in `ingest/types.ts` |
 | Server actions | ✅ Phase 1 | `actions/resources.ts` (`createResource`), `actions/sessions.ts` (`markSessionComplete`) |
 | XP + level math | ✅ Phase 2 | `src/lib/xp.ts` — `xpForSession`, `levelFromXp` (`max(1, floor(sqrt(xp/100)))`), `progressToNextLevel` |
 | Streak logic | ✅ Phase 2 | `src/lib/streak.ts` — `computeStreakUpdate`: gap=1 → increment, gap>1 → reset to 1 |

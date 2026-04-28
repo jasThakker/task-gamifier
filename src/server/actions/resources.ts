@@ -7,6 +7,7 @@ import { resources, sessions } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { ingestText } from "@/server/ingest/text";
 import { ingestYouTube } from "@/server/ingest/youtube";
+import { ingestPDF } from "@/server/ingest/pdf";
 import { runBreakdown } from "@/server/llm/breakdown";
 import { USER_ID } from "@/lib/constants";
 
@@ -22,6 +23,11 @@ const CreateTextSchema = z.object({
 const CreateYouTubeSchema = z.object({
   sourceType: z.literal("youtube_video"),
   url: z.string().url("Must be a valid URL"),
+  skillLevel: z.enum(["beginner", "intermediate", "advanced"]),
+});
+
+const CreatePDFSchema = z.object({
+  sourceType: z.literal("pdf"),
   skillLevel: z.enum(["beginner", "intermediate", "advanced"]),
 });
 
@@ -104,6 +110,50 @@ export async function createResource(
         await tx
           .update(resources)
           .set({ status: "ready" })
+          .where(eq(resources.id, resourceId!));
+        await tx.insert(sessions).values(newSessions);
+      });
+    } else if (sourceType === "pdf") {
+      const parsed = CreatePDFSchema.safeParse({
+        sourceType: "pdf",
+        skillLevel: formData.get("skillLevel"),
+      });
+      if (!parsed.success) {
+        return { error: parsed.error.errors[0]?.message ?? "Invalid input" };
+      }
+      const { skillLevel } = parsed.data;
+
+      const file = formData.get("file");
+      if (!(file instanceof File) || file.size === 0) {
+        return { error: "Please select a PDF file." };
+      }
+      if (!file.name.toLowerCase().endsWith(".pdf")) {
+        return { error: "Only PDF files are supported." };
+      }
+
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const pdfContent = await ingestPDF(buffer, file.name);
+
+      const [inserted] = await db
+        .insert(resources)
+        .values({
+          userId: USER_ID,
+          title: pdfContent.title,
+          sourceType: "pdf",
+          skillLevel,
+          status: "processing",
+        })
+        .returning({ id: resources.id });
+
+      resourceId = inserted?.id ?? null;
+      if (!resourceId) throw new Error("Failed to create resource record");
+
+      const newSessions = await runBreakdown(pdfContent, skillLevel, resourceId);
+
+      await db.transaction(async (tx) => {
+        await tx
+          .update(resources)
+          .set({ status: "ready", rawContent: pdfContent.pageTexts.join("\f") })
           .where(eq(resources.id, resourceId!));
         await tx.insert(sessions).values(newSessions);
       });

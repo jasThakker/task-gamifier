@@ -89,7 +89,7 @@ src/
       prompts.ts        Prompt templates per skill level
     ingest/
       youtube.ts        yt-dlp wrapper
-      pdf.ts            pdf-parse wrapper (Phase 4)
+      pdf.ts            pdf-parse v2 wrapper — PDFParse class, per-page text extraction
       text.ts           text passthrough
   lib/
     xp.ts               XP / level math

@@ -34,7 +34,7 @@ Nice to ship in v1; cuttable if time runs out. ~18 hours.
 
 | # | Feature | Phase | Notes |
 |---|---|---|---|
-| S1 | **PDF upload + breakdown** | 4 | pdf-parse, page-aware sessions, inline render |
+| ~~S1~~ ✅ | **PDF upload + breakdown** | 4 | pdf-parse v2, per-page text extraction, `PdfSessionSchema` with `pages[]` locator, `PdfExcerpt` inline viewer on session detail. |
 | S2 | **YouTube playlist** support | 5 | Per-video sub-sessions; skip if time tight |
 | S3 | **Mobile-responsive layouts** | 6 | Phone usable; not phone-first |
 | S4 | **First-run onboarding** | 6 | "Try a sample resource" button to seed an example |

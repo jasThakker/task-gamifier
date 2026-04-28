@@ -4,6 +4,7 @@ import { getSession } from "@/server/db/queries";
 import { markSessionComplete } from "@/server/actions/sessions";
 import { YouTubeEmbed } from "@/components/youtube-embed";
 import { TextExcerpt } from "@/components/text-excerpt";
+import { PdfExcerpt } from "@/components/pdf-excerpt";
 import { SessionFlashcard } from "@/components/session-flashcard";
 import { buttonVariants } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,6 +40,10 @@ export default async function SessionPage({ params }: Props) {
 
       {locator.kind === "text" && resource.rawContent && (
         <TextExcerpt fullText={resource.rawContent} range={locator.range} />
+      )}
+
+      {locator.kind === "pdf" && resource.rawContent && (
+        <PdfExcerpt rawContent={resource.rawContent} pages={locator.pages} />
       )}
 
       <SessionFlashcard session={session} />

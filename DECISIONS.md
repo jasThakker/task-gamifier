@@ -266,6 +266,18 @@ Format per entry: **Decision · Context · Alternatives · Reasoning · Tradeoff
 
 ---
 
+## D-025 · pdf-parse v2 class-based API (Phase 4)
+
+- **Decision**: Use `pdf-parse` v2 (`PDFParse` class) for PDF text extraction. Per-page texts come from `result.pages`; rawContent stores them joined by `\f` (form feed).
+- **Context**: `npm install pdf-parse` installed v2.4.5, which has a completely rewritten API (`PDFParse` constructor + `getText()`) vs. the old v1 default-export function. `@types/pdf-parse` (for v1) was uninstalled — v2 ships its own types.
+- **Alternatives considered**:
+  - Pin pdf-parse to v1.x to match `@types/pdf-parse`.
+  - Use `pdfjs-dist` directly.
+- **Reasoning**: v2 ships typed per-page results (`result.pages: { num, text }[]`) natively — no `pagerender` callback hacks needed. The cleaner API is worth the one-time migration cost.
+- **Tradeoffs**: The v2 API may still evolve; pin the minor version in package.json if stability matters.
+
+---
+
 ## How to update this doc
 
 When a decision changes:
