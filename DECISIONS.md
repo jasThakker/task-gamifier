@@ -275,6 +275,19 @@ Format per entry: **Decision · Context · Alternatives · Reasoning · Tradeoff
   - Use `pdfjs-dist` directly.
 - **Reasoning**: v2 ships typed per-page results (`result.pages: { num, text }[]`) natively — no `pagerender` callback hacks needed. The cleaner API is worth the one-time migration cost.
 - **Tradeoffs**: The v2 API may still evolve; pin the minor version in package.json if stability matters.
+- **Revision note**: extracted text must have null bytes stripped (`replace(/\0/g, "")`) before DB insert — Postgres rejects `0x00` in UTF-8 text columns. Fixed in `ingestPDF` alongside initial implementation. **Also see D-026** for the `serverExternalPackages` fix required to make pdf-parse work in Next.js server actions.
+
+---
+
+## D-026 · `serverExternalPackages` for pdf-parse / pdfjs-dist (Phase 4 fix)
+
+- **Decision**: Add `serverExternalPackages: ["pdf-parse", "pdfjs-dist"]` to `next.config.ts`.
+- **Context**: After Phase 4 landed, uploading a PDF crashed with `Object.defineProperty called on non-object` originating from `pdfjs-dist/legacy/build/pdf.mjs`. Next.js was bundling `pdf-parse` and its `pdfjs-dist` dependency for the server-action context (`action-browser` bundle), where `pdfjs-dist` performs browser-compat `Object.defineProperty` calls that fail on non-objects.
+- **Alternatives considered**:
+  - Dynamically import `pdf-parse` inside the action to defer resolution.
+  - Switch to a lighter PDF library without pdfjs-dist.
+- **Reasoning**: `serverExternalPackages` tells Next.js to skip webpack bundling for those packages and use native Node `require` instead — the standard fix for heavy native/binary Node modules in App Router. One-line change, zero runtime cost.
+- **Tradeoffs**: These packages must be installed in the host Node environment (they are — they're in `node_modules`). No impact on client bundle size since they're server-only.
 
 ---
 

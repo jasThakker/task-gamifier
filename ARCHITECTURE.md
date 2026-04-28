@@ -200,7 +200,7 @@ ingest.run(input) ──▶ NormalizedContent
 type NormalizedContent =
   | { kind: "text"; text: string; title: string }
   | { kind: "youtube"; videoId: string; title: string; durationSeconds: number; transcript: TimestampedSegment[] }
-  | { kind: "pdf"; text: string; pageBoundaries: number[]; title: string };  // Phase 4
+  | { kind: "pdf"; title: string; pageTexts: string[]; totalPages: number };  // Phase 4 — per-page text array; stored in rawContent joined by \f
   // youtube_playlist deferred to Phase 5
 ```
 
@@ -216,7 +216,7 @@ const DEFAULTS = {
 
 `prompts.ts` — three system prompts keyed to skill level (beginner/intermediate/advanced); sets chunk-size expectations, jargon handling, and locator instructions.
 
-`breakdown.ts` — two Zod schemas (`YouTubeSessionSchema` with `startSeconds`/`endSeconds`, `TextSessionSchema` without); calls `generateObject`; maps output to `NewSession[]`. Text session ranges are assigned proportionally post-LLM (not LLM-derived).
+`breakdown.ts` — three Zod schemas (`YouTubeSessionSchema` with `startSeconds`/`endSeconds`, `TextSessionSchema` without, `PdfSessionSchema` with `pages: number[]`); calls `generateObject`; maps output to `NewSession[]`. Text session ranges are assigned proportionally post-LLM (not LLM-derived). PDF calls use `maxTokens: 8192` and input is truncated to 40k chars in `prompts.ts`.
 
 ---
 
@@ -227,7 +227,7 @@ const DEFAULTS = {
 | Plain text | `ingest/text.ts` | passthrough | `{ kind: "text", range: [start, end] }` |
 | YouTube video | `ingest/youtube.ts` | `child_process` → `yt-dlp --write-auto-sub --sub-lang en --skip-download --output ...` | `{ kind: "youtube", startSeconds, endSeconds }` |
 | YouTube playlist | `ingest/youtube.ts` | `yt-dlp -J <playlist>` then per-video transcripts | per-video `youtube` locators |
-| PDF | `ingest/pdf.ts` | `pdf-parse` for text + page count; track text→page mapping | `{ kind: "pdf", pages: [...] }` |
+| PDF | `ingest/pdf.ts` | `pdf-parse` v2 `PDFParse` class → `getText()` → per-page `result.pages`; null bytes stripped; pages joined by `\f` in `rawContent` | `{ kind: "pdf", pages: [...] }` |
 
 YouTube playlist resources expand into per-video sub-groupings of sessions. The `sessions` table doesn't need a separate "video" entity — `source_locator.video_id` lives in the locator JSON for playlist children.
 
@@ -252,8 +252,8 @@ app/layout.tsx (wraps <Providers> → ThemeProvider + CelebrationOverlay)
       │   └── <SessionCard> (×N)              — same component as resource list
       └── app/sessions/[id]/page.tsx          — Session detail
           ├── <CelebrationTrigger>            — reads ?xp=&leveled= params, fires Zustand event
-          ├── <SessionFlashcard>              — 3D card flip (front: focus+outcome / back: objectives+concepts)
-          ├── <YouTubeEmbed> / <TextExcerpt>  — content inline
+          ├── <SessionFlashcard>              — 3D card flip, fixed maxHeight 480px, scrollable content
+          ├── <YouTubeEmbed> / <TextExcerpt> / <PdfExcerpt>  — content inline per locator kind
           └── mark-complete form             — server action → redirect with ?xp= params
 ```
 
@@ -298,6 +298,7 @@ There isn't any in v1. Resource creation runs synchronously in the server action
 
 - **Env loading**: Next.js auto-loads `.env.local`. Standalone scripts (`drizzle.config.ts`, `src/server/db/migrate.ts`, `src/server/db/seed.ts`) call `dotenv.config({ path: ".env.local" })` at the top — they don't see Next's loader.
 - **Postgres pool**: `src/server/db/client.ts` keeps a single `Pool` on `globalThis` in non-prod so HMR doesn't leak connections. Production gets a fresh pool per process.
+- **serverExternalPackages**: `next.config.ts` lists `["pdf-parse", "pdfjs-dist"]` so webpack does not bundle them — they use native Node `require` instead. Required because `pdfjs-dist` calls `Object.defineProperty` on non-objects during module init when bundled for the server-action context. See D-026.
 - **SSL**: `ssl: { rejectUnauthorized: false }` for Neon. The current `pg` deprecation warning about `sslmode=require` semantics is benign; can switch to `uselibpqcompat=true&sslmode=require` later if it gets noisy.
 - **npm scripts**: `dev`, `build`, `start`, `lint`, `typecheck`, `db:generate`, `db:migrate`, `db:studio`, `db:seed` — all listed in `CLAUDE.md`.
 

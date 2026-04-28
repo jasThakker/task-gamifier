@@ -77,6 +77,7 @@ src/
     dashboard-content.tsx
     youtube-embed.tsx
     text-excerpt.tsx
+    pdf-excerpt.tsx         Inline page text viewer for pdf locators (splits rawContent on \f)
   server/
     actions/            Server actions (mutations)
     db/
