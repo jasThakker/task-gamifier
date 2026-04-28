@@ -32,11 +32,12 @@ const YouTubeResponseSchema = z.object({
 const PdfSessionSchema = z.object({
   title: z.string().min(1),
   focusGoal: z.string().min(1),
-  learningObjectives: z.array(z.string()).min(3).max(5),
-  keyConcepts: z.array(z.string()).min(1).max(8),
+  learningObjectives: z.array(z.string()).min(1).max(8),
+  keyConcepts: z.array(z.string()).min(1).max(12),
   outcomeStatement: z.string().min(1),
-  estimatedMinutes: z.number().int().min(1).max(180),
-  pages: z.array(z.number().int().min(1)).min(1),
+  estimatedMinutes: z.number().min(1).max(240).transform(Math.round),
+  // LLMs sometimes return floats; round to nearest int and clamp to page 1+
+  pages: z.array(z.number().min(0).transform((n) => Math.max(1, Math.round(n)))).min(1),
 });
 
 const TextResponseSchema = z.object({
@@ -44,7 +45,7 @@ const TextResponseSchema = z.object({
 });
 
 const PdfResponseSchema = z.object({
-  sessions: z.array(PdfSessionSchema).min(1).max(40),
+  sessions: z.array(PdfSessionSchema).min(1).max(15),
 });
 
 type SkillLevel = "beginner" | "intermediate" | "advanced";
@@ -87,12 +88,20 @@ export async function runBreakdown(
   }
 
   if (content.kind === "pdf") {
-    const { object } = await generateObject({
-      model,
-      schema: PdfResponseSchema,
-      system,
-      prompt: user,
-    });
+    let result;
+    try {
+      result = await generateObject({
+        model,
+        schema: PdfResponseSchema,
+        system,
+        prompt: user,
+        maxTokens: 8192,
+      });
+    } catch (err) {
+      console.error("[PDF breakdown] generateObject failed:", err);
+      throw err;
+    }
+    const { object } = result;
 
     return object.sessions.map((s, i) => ({
       resourceId,
@@ -109,6 +118,7 @@ export async function runBreakdown(
       reflectionNotes: null,
     }));
   }
+
 
   const textLength = content.text.length;
   const { object } = await generateObject({

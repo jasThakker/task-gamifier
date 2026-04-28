@@ -8,7 +8,10 @@ export async function ingestPDF(
   const parser = new PDFParse({ data: buffer });
   const result = await parser.getText();
 
-  const pageTexts = result.pages.map((p) => p.text.trim()).filter((t) => t.length > 0);
+  // Postgres rejects null bytes in text columns; strip them from extracted PDF text.
+  const pageTexts = result.pages
+    .map((p) => p.text.replace(/\0/g, "").trim())
+    .filter((t) => t.length > 0);
 
   if (pageTexts.length === 0) {
     throw new Error("No text could be extracted from this PDF. It may be scanned or image-only.");

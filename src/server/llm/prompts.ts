@@ -38,10 +38,19 @@ function formatText(content: Extract<NormalizedContent, { kind: "text" }>): stri
   return content.text;
 }
 
+const PDF_CHAR_LIMIT = 40_000;
+
 function formatPDF(content: Extract<NormalizedContent, { kind: "pdf" }>): string {
-  return content.pageTexts
-    .map((text, i) => `--- Page ${i + 1} ---\n${text}`)
-    .join("\n\n");
+  let result = "";
+  for (let i = 0; i < content.pageTexts.length; i++) {
+    const chunk = `--- Page ${i + 1} ---\n${content.pageTexts[i]}\n\n`;
+    if (result.length + chunk.length > PDF_CHAR_LIMIT) {
+      result += `--- (remaining ${content.pageTexts.length - i} pages omitted — focus sessions on the content above) ---`;
+      break;
+    }
+    result += chunk;
+  }
+  return result;
 }
 
 export function buildPrompt(
@@ -66,7 +75,8 @@ ${
 Timestamps must come directly from the transcript. Do not invent timestamps.`
     : content.kind === "pdf"
     ? `- pages: array of 1-indexed page numbers this session covers (e.g. [1, 2, 3])
-Pages must come from the document. Do not invent page numbers.`
+Pages must come from the document. Do not invent page numbers.
+Produce at most 15 sessions total. Prefer fewer, larger sessions over many small ones.`
     : ""
 }
 
