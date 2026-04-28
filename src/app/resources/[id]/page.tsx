@@ -72,15 +72,26 @@ export default async function ResourcePage({ params }: Props) {
         </div>
       </div>
 
-      {sessions.length === 0 ? (
-        <p className="text-muted-foreground">No sessions yet.</p>
-      ) : (
+      {sessions.length === 0 && resource.status !== "failed" ? (
+        <div className="rounded-chunky border-2 border-dashed border-border py-12 text-center space-y-4">
+          <div className="text-4xl">🔍</div>
+          <div className="space-y-1">
+            <p className="font-semibold">No sessions generated</p>
+            <p className="text-sm text-muted-foreground">
+              The LLM did not return any sessions for this resource.
+            </p>
+          </div>
+          <Link href="/resources/new" className={buttonVariants({ variant: "outline" })}>
+            Try a new resource
+          </Link>
+        </div>
+      ) : sessions.length > 0 ? (
         <div className="space-y-3">
           {sessions.map((session, i) => (
             <SessionCard key={session.id} session={session} index={i} />
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

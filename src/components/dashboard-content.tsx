@@ -91,10 +91,16 @@ export function DashboardContent({ user, nextUp, hasResources }: Props) {
             </div>
           </div>
         ) : nextUp.length === 0 ? (
-          <div className="rounded-chunky border border-dashed border-border p-8 text-center space-y-3">
-            <p className="text-muted-foreground">All caught up! Add a new resource to keep going.</p>
+          <div className="rounded-chunky border-2 border-dashed border-green-500/30 bg-green-500/5 p-8 text-center space-y-4">
+            <div className="text-4xl">🎉</div>
+            <div className="space-y-1">
+              <p className="font-bold text-lg">All caught up!</p>
+              <p className="text-sm text-muted-foreground">
+                You have completed all pending sessions. Add a new resource to keep learning.
+              </p>
+            </div>
             <Link href="/resources/new" className={buttonVariants()}>
-              + New resource
+              + Add new resource
             </Link>
           </div>
         ) : (

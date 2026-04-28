@@ -148,7 +148,7 @@ Cost expectation: Sonnet 4.6 on a 2-hour video transcript ≈ 30k–50k input to
 | **4. PDF support** | 4 | Upload, parse, page-aware sessions, inline PDF render | ✅ Done (2026-04-27) — pdf-parse v2 (`PDFParse` class), per-page text extraction, PDF tab in create form, `PdfExcerpt` component, `PdfSessionSchema` with `pages[]` locator in breakdown pipeline. |
 | **5. YouTube playlist support** | 4 | Multi-video resource, per-video sub-sessions | |
 | **6. Mobile responsive + onboarding** | 4 | Phone-friendly layouts, first-run flow | ✅ Done (2026-04-27) — responsive padding/header/stat grid, tab label shortening, `seedSampleResource` action with 3 pre-canned sessions, onboarding panel on empty dashboard. |
-| **7. Polish + README + maybe deploy** | 6 | Bug bash, empty states, screenshots, deploy if time allows | |
+| **7. Polish + README + maybe deploy** | 6 | Bug bash, empty states, screenshots, deploy if time allows | ✅ Done (2026-04-27) — Polished empty states on resource list, resource detail, and dashboard "all caught up"; README written with setup, stack, deployment guide. Phase 5 (playlist) skipped. |
 
 **Total: ~42h.** Phases 1–3 are the demo-able core. If time runs short, drop playlist before PDF (PDFs are more useful day-to-day).
 

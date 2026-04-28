@@ -23,10 +23,16 @@ type ResourceWithCounts = Resource & { sessionCount: number; completedCount: num
 export function ResourceList({ resources }: { resources: ResourceWithCounts[] }) {
   if (resources.length === 0) {
     return (
-      <div className="rounded-chunky border-2 border-dashed border-border py-16 text-center space-y-4">
-        <p className="text-muted-foreground">No resources yet.</p>
+      <div className="rounded-chunky border-2 border-dashed border-primary/30 bg-primary/5 py-16 text-center space-y-5">
+        <div className="text-5xl">📚</div>
+        <div className="space-y-1.5">
+          <p className="font-bold text-lg">No resources yet</p>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+            Add a YouTube video, PDF, or paste any text to break it into bite-sized study sessions.
+          </p>
+        </div>
         <Link href="/resources/new" className={buttonVariants()}>
-          Add your first resource
+          Add your first resource →
         </Link>
       </div>
     );
