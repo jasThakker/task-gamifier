@@ -45,15 +45,9 @@ export function CreateResourceForm() {
         onValueChange={(v) => setTab(v as "text" | "youtube_video" | "pdf")}
       >
         <TabsList className="w-full">
-          <TabsTrigger value="text" className="flex-1">
-            Plain text
-          </TabsTrigger>
-          <TabsTrigger value="youtube_video" className="flex-1">
-            YouTube video
-          </TabsTrigger>
-          <TabsTrigger value="pdf" className="flex-1">
-            PDF
-          </TabsTrigger>
+          <TabsTrigger value="text" className="flex-1">Text</TabsTrigger>
+          <TabsTrigger value="youtube_video" className="flex-1">YouTube</TabsTrigger>
+          <TabsTrigger value="pdf" className="flex-1">PDF</TabsTrigger>
         </TabsList>
 
         <TabsContent value="text" className="space-y-4 pt-4">

@@ -27,20 +27,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" className={cn(nunito.variable)} suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
         <Providers>
-          <div className="mx-auto max-w-3xl px-6">
-            <header className="flex items-center justify-between gap-3 py-4 border-b border-border">
-              <Link href="/" className="text-lg font-extrabold tracking-tight hover:opacity-80 transition-opacity">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6">
+            <header className="flex items-center justify-between gap-2 sm:gap-3 py-4 border-b border-border">
+              <Link href="/" className="text-lg font-extrabold tracking-tight hover:opacity-80 transition-opacity shrink-0">
                 task gamifier
               </Link>
-              <nav className="flex items-center gap-4">
+              <nav className="flex items-center gap-2 sm:gap-4">
                 <Link href="/resources/new" className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
                   + new
                 </Link>
-                <Link href="/resources" className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/resources" className="hidden sm:block text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
                   resources
                 </Link>
               </nav>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {user && xpProgress && (
                   <>
                     <StreakBadge streak={user.currentStreak} className="text-sm" />
@@ -57,7 +57,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <ThemeToggle />
               </div>
             </header>
-            <main className="py-8">{children}</main>
+            <main className="py-6 sm:py-8">{children}</main>
             <CelebrationOverlay />
           </div>
         </Providers>

@@ -36,8 +36,8 @@ Nice to ship in v1; cuttable if time runs out. ~18 hours.
 |---|---|---|---|
 | ~~S1~~ ✅ | **PDF upload + breakdown** | 4 | pdf-parse v2, per-page text extraction, `PdfSessionSchema` with `pages[]` locator, `PdfExcerpt` inline viewer on session detail. |
 | S2 | **YouTube playlist** support | 5 | Per-video sub-sessions; skip if time tight |
-| S3 | **Mobile-responsive layouts** | 6 | Phone usable; not phone-first |
-| S4 | **First-run onboarding** | 6 | "Try a sample resource" button to seed an example |
+| ~~S3~~ ✅ | **Mobile-responsive layouts** | 6 | Responsive padding (`px-4 sm:px-6`), header hides "resources" link on mobile, stat grid tighter on small screens, tab labels shortened. |
+| ~~S4~~ ✅ | **First-run onboarding** | 6 | Empty dashboard shows welcome panel with "Try a sample resource" (seeds 3 pre-canned sessions, no LLM call) and "Add your first resource" CTA. |
 | S5 | **Polished empty states** | 7 | Illustrations + helpful CTAs for empty dashboard / resource list |
 | ~~S6~~ ✅ | **Reflection notes** prompt on session complete | 7 | Optional textarea after marking complete — pulled into Phase 1 (trivial to add alongside mark-complete) |
 | S7 | **README with screenshots** | 7 | For potential open-sourcing |

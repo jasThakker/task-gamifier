@@ -67,7 +67,7 @@ export async function getDashboardData() {
     .where(and(eq(resources.userId, USER_ID), eq(resources.status, "ready")))
     .orderBy(resources.createdAt);
 
-  if (activeResources.length === 0) return { user, nextUp: [] };
+  if (activeResources.length === 0) return { user, nextUp: [], hasResources: false };
 
   const allSessions = await db
     .select()
@@ -89,7 +89,7 @@ export async function getDashboardData() {
     nextUp.push({ session: row.sessions, resource: row.resources });
   }
 
-  return { user, nextUp };
+  return { user, nextUp, hasResources: true };
 }
 
 export async function getSession(sessionId: string) {

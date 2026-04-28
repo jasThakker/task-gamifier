@@ -13,5 +13,5 @@ export default async function HomePage() {
     );
   }
 
-  return <DashboardContent user={data.user} nextUp={data.nextUp} />;
+  return <DashboardContent user={data.user} nextUp={data.nextUp} hasResources={data.hasResources} />;
 }
