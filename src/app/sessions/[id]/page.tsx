@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/server/db/queries";
-import { markSessionComplete } from "@/server/actions/sessions";
+import { markSessionComplete, unmarkSessionComplete } from "@/server/actions/sessions";
 import { YouTubeEmbed } from "@/components/youtube-embed";
 import { TextExcerpt } from "@/components/text-excerpt";
 import { PdfExcerpt } from "@/components/pdf-excerpt";
@@ -83,6 +83,15 @@ export default async function SessionPage({ params }: Props) {
           >
             Back to resource
           </Link>
+          <form action={unmarkSessionComplete}>
+            <input type="hidden" name="sessionId" value={session.id} />
+            <button
+              type="submit"
+              className={buttonVariants({ variant: "ghost", className: "w-full text-muted-foreground text-sm" })}
+            >
+              Undo completion
+            </button>
+          </form>
         </div>
       )}
     </div>

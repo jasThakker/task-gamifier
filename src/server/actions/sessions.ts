@@ -68,3 +68,39 @@ export async function markSessionComplete(formData: FormData): Promise<void> {
 
   redirect(`/resources/${row.resource.id}${celebrationParams}`);
 }
+
+export async function unmarkSessionComplete(formData: FormData): Promise<void> {
+  const sessionId = formData.get("sessionId");
+  if (typeof sessionId !== "string") throw new Error("Missing sessionId");
+
+  const [row, user] = await Promise.all([getSession(sessionId), getCurrentUser()]);
+  if (!row) throw new Error("Session not found");
+  if (!user) throw new Error("User not found");
+
+  if (!row.session.completedAt) redirect(`/sessions/${sessionId}`);
+
+  const xpDelta = xpForSession(row.session.estimatedMinutes);
+  const newXp = Math.max(0, user.xp - xpDelta);
+  const newLevel = levelFromXp(newXp);
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(sessions)
+      .set({ completedAt: null })
+      .where(eq(sessions.id, sessionId));
+
+    await tx.insert(xpEvents).values({
+      userId: user.id,
+      sessionId,
+      delta: -xpDelta,
+      reason: `Unmarked session: ${row.session.title}`,
+    });
+
+    await tx
+      .update(users)
+      .set({ xp: newXp, level: newLevel })
+      .where(eq(users.id, user.id));
+  });
+
+  redirect(`/sessions/${sessionId}`);
+}
