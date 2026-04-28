@@ -163,8 +163,8 @@ All mutations are server actions. Reads are server-component data fetches (no AP
 // src/server/actions/resources.ts
 // useActionState signature — returns error state or redirects on success
 createResource(_prevState: CreateResourceState, formData: FormData): Promise<CreateResourceState>
+deleteResource(formData: FormData): Promise<void>  // ships a hidden resourceId input; confirms in client before submit; cascades to sessions via DB
 // post-MVP:
-deleteResource(resourceId: string): Promise<void>
 regenerateBreakdown(resourceId: string): Promise<void>
 
 // src/server/actions/sessions.ts
@@ -256,7 +256,8 @@ app/layout.tsx (wraps <Providers> → ThemeProvider + CelebrationOverlay)
       ├── app/resources/new/page.tsx          — Create form
       │   └── <CreateResourceForm>            — input-type tabs, skill picker
       ├── app/resources/[id]/page.tsx         — One resource
-      │   ├── <ResourceHeader>                — title, progress %
+      │   ├── <DeleteResourceButton>          — client; window.confirm → deleteResource action → redirect /resources
+      │   ├── progress bar + session counts
       │   └── <SessionCard> (×N)              — same component as resource list
       └── app/sessions/[id]/page.tsx          — Session detail
           ├── <CelebrationTrigger>            — reads ?xp=&leveled= params, fires Zustand event

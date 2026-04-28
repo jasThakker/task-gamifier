@@ -75,6 +75,7 @@ src/
     theme-toggle.tsx    🌙/☀️ toggle button
     create-resource-form.tsx
     dashboard-content.tsx
+    delete-resource-button.tsx  Client component; window.confirm → form action → deleteResource
     youtube-embed.tsx
     text-excerpt.tsx
     pdf-excerpt.tsx         Inline page text viewer for pdf locators (splits rawContent on \f)
