@@ -79,7 +79,10 @@ src/
     text-excerpt.tsx
     pdf-excerpt.tsx         Inline page text viewer for pdf locators (splits rawContent on \f)
   server/
-    actions/            Server actions (mutations)
+    actions/
+      resources.ts      createResource — ingest + LLM breakdown + DB insert
+      sessions.ts       markSessionComplete — XP + streak transaction
+      onboarding.ts     seedSampleResource — pre-canned resource + 3 sessions, no LLM (Phase 6)
     db/
       schema.ts         Drizzle schema (source of truth)
       queries.ts        Reusable typed queries

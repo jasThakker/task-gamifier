@@ -23,6 +23,8 @@ System design for Task Gamifier. Pairs with `PLAN.md` (product) and `DECISIONS.m
 | Dashboard (real data) | ✅ Phase 2 | `getDashboardData()` in `queries.ts`; `app/page.tsx` shows stat cards + next-up sessions |
 | App shell / header | ✅ Phase 2 | `layout.tsx` header with streak, level badge, XP bar on every page |
 | `markSessionComplete` (XP+streak) | ✅ Phase 2 | Single DB transaction: update session, insert `xp_events`, update `users` (xp, level, streak) |
+| Mobile-responsive layouts | ✅ Phase 6 | `px-4 sm:px-6` container; header hides "resources" link on mobile (`hidden sm:block`), tighter gaps; stat grid `gap-2 sm:gap-4`, `p-3 sm:p-4`; tab labels shortened ("Text"/"YouTube"/"PDF"). |
+| First-run onboarding | ✅ Phase 6 | `getDashboardData()` returns `hasResources: boolean`; `DashboardContent` shows welcome panel when false; `seedSampleResource` action inserts pre-canned resource + 3 sessions with no LLM call; redirects to resource on duplicate. |
 | Animations / Lottie / Zustand | ✅ Phase 3 | Framer Motion for card flip (3D `rotateY`) + resource list stagger + celebration overlay. `lottie-react` + `public/lotties/celebration.json` for XP burst. Zustand (`src/lib/store.ts`) for cross-component `pendingEvent` → `CelebrationOverlay`. |
 | Dark mode | ✅ Phase 3 | `next-themes` `ThemeProvider` in `src/components/providers.tsx`. `.dark` CSS vars in `globals.css`. `ThemeToggle` button in header. SSR-safe (no hydration flash). |
 | Playful styling pass | ✅ Phase 3 | Resource cards and session cards unified with `card-playful` + `shadow-chunky`. `SessionFlashcard` front/back faces. Consistent typography + color tokens throughout. |
@@ -171,10 +173,15 @@ markSessionComplete(formData: FormData): Promise<void>
 
 // src/server/actions/dashboard.ts — Phase 2
 recomputeStreak(): Promise<void>
+
+// src/server/actions/onboarding.ts — Phase 6
+// Inserts pre-canned "Science of Effective Learning" resource + 3 sessions (no LLM).
+// Redirects to /resources if a resource already exists (idempotent).
+seedSampleResource(formData: FormData): Promise<void>
 ```
 
 Reads (server components fetch directly via Drizzle):
-- `getDashboardData()` — user stats + active resources + next-up sessions
+- `getDashboardData()` — user stats + active resources + next-up sessions; returns `hasResources: boolean` (true when any resource row exists)
 - `getResource(id)` — resource + ordered sessions
 - `getSession(id)` — session + parent resource
 
@@ -239,9 +246,10 @@ YouTube playlist resources expand into per-video sub-groupings of sessions. The 
 app/layout.tsx (wraps <Providers> → ThemeProvider + CelebrationOverlay)
   └── <AppShell> (header: streak, level badge, XP bar, ThemeToggle)
       ├── app/page.tsx                        — Dashboard
-      │   ├── <StreakCard>
-      │   ├── <NextUpList>                    — across all active resources
-      │   └── <RecentActivity>
+      │   └── <DashboardContent>             — client island; stat cards + next-up list
+      │       ├── onboarding panel (hasResources=false) — seedSampleResource form + "Add first resource" CTA
+      │       ├── all-caught-up empty state (hasResources=true, nextUp=[])
+      │       └── next-up list + "Continue learning" CTA
       ├── app/resources/page.tsx              — All resources (RSC shell)
       │   └── <ResourceList>                  — client island; Framer Motion stagger
       │       └── <SessionCard> (×N)          — card-playful, numbered circle, XP display
