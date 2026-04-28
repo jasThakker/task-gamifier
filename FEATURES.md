@@ -22,9 +22,9 @@ These are required for the app to be demo-able and personally useful. ~24 hours 
 | ~~M10~~ ✅ | **Decorative level** (numbers go up) | 2 | `level = max(1, floor(sqrt(xp / 100)))`. `progressToNextLevel()` drives XP bar in header + dashboard. |
 | ~~M11~~ ✅ | **Daily streak** with strict reset | 2 | `computeStreakUpdate()` in `src/lib/streak.ts`. Gap > 1 day resets to 1. Updated in same transaction as XP. |
 | ~~M12~~ ✅ | **Dashboard** with streak, XP, "next up" sessions | 2 | `getDashboardData()` query. Real stat cards + next incomplete session per active resource. Header on every page shows streak/level/XP bar. |
-| M13 | **Playful animations** (Framer Motion celebrations) | 3 | Confetti / XP burst / level-up overlay |
-| M14 | **Custom playful styling** (colors, typography) | 3 | Not stock shadcn; takes shadcn and themes it up |
-| M15 | **Lottie celebrations** | 3 | At least 1 reusable celebration animation |
+| ~~M13~~ ✅ | **Playful animations** (Framer Motion celebrations) | 3 | `CelebrationOverlay` (AnimatePresence + spring), `SessionFlashcard` 3D flip, `ResourceList` stagger. Zustand `useGameStore` fires events cross-component. |
+| ~~M14~~ ✅ | **Custom playful styling** (colors, typography) | 3 | Dark mode via `next-themes`; `.dark` CSS vars; resource + session cards unified with `card-playful`/`shadow-chunky` tokens; `ThemeToggle` in header. |
+| ~~M15~~ ✅ | **Lottie celebrations** | 3 | `public/lotties/celebration.json` 6-dot burst plays on every session complete via `lottie-react`. |
 
 ---
 

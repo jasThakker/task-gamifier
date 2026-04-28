@@ -254,6 +254,18 @@ Format per entry: **Decision · Context · Alternatives · Reasoning · Tradeoff
 
 ---
 
+## D-024 · `next-themes` for dark mode (Phase 3)
+
+- **Decision**: Add `next-themes` to manage light/dark mode.
+- **Context**: Phase 3 required a dark mode toggle that works with Next.js App Router (SSR) without causing hydration mismatches.
+- **Alternatives considered**:
+  - Pure CSS class toggle via Zustand/localStorage (manual implementation).
+  - `color-scheme` media query only (no user toggle).
+- **Reasoning**: `next-themes` handles the SSR + hydration flash problem correctly by injecting a blocking script before React hydrates, matching the strategy Next.js itself recommends. Rolling our own is ~50 lines of tricky code to handle the same edge case.
+- **Tradeoffs**: One more dependency. The package is tiny (< 2 kB) and widely adopted in Next.js projects. Acceptable.
+
+---
+
 ## How to update this doc
 
 When a decision changes:

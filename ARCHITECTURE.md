@@ -23,7 +23,9 @@ System design for Task Gamifier. Pairs with `PLAN.md` (product) and `DECISIONS.m
 | Dashboard (real data) | ✅ Phase 2 | `getDashboardData()` in `queries.ts`; `app/page.tsx` shows stat cards + next-up sessions |
 | App shell / header | ✅ Phase 2 | `layout.tsx` header with streak, level badge, XP bar on every page |
 | `markSessionComplete` (XP+streak) | ✅ Phase 2 | Single DB transaction: update session, insert `xp_events`, update `users` (xp, level, streak) |
-| Animations / Lottie / Zustand | ⏳ Phase 3 | Not yet installed |
+| Animations / Lottie / Zustand | ✅ Phase 3 | Framer Motion for card flip (3D `rotateY`) + resource list stagger + celebration overlay. `lottie-react` + `public/lotties/celebration.json` for XP burst. Zustand (`src/lib/store.ts`) for cross-component `pendingEvent` → `CelebrationOverlay`. |
+| Dark mode | ✅ Phase 3 | `next-themes` `ThemeProvider` in `src/components/providers.tsx`. `.dark` CSS vars in `globals.css`. `ThemeToggle` button in header. SSR-safe (no hydration flash). |
+| Playful styling pass | ✅ Phase 3 | Resource cards and session cards unified with `card-playful` + `shadow-chunky`. `SessionFlashcard` front/back faces. Consistent typography + color tokens throughout. |
 
 ---
 
@@ -234,27 +236,30 @@ YouTube playlist resources expand into per-video sub-groupings of sessions. The 
 ## Component relationships (target)
 
 ```
-app/layout.tsx
-  └── <AppShell> (header with XP bar, streak, level)
+app/layout.tsx (wraps <Providers> → ThemeProvider + CelebrationOverlay)
+  └── <AppShell> (header: streak, level badge, XP bar, ThemeToggle)
       ├── app/page.tsx                        — Dashboard
       │   ├── <StreakCard>
       │   ├── <NextUpList>                    — across all active resources
       │   └── <RecentActivity>
-      ├── app/resources/page.tsx              — All resources
-      │   └── <ResourceGrid>
+      ├── app/resources/page.tsx              — All resources (RSC shell)
+      │   └── <ResourceList>                  — client island; Framer Motion stagger
+      │       └── <SessionCard> (×N)          — card-playful, numbered circle, XP display
       ├── app/resources/new/page.tsx          — Create form
       │   └── <CreateResourceForm>            — input-type tabs, skill picker
       ├── app/resources/[id]/page.tsx         — One resource
       │   ├── <ResourceHeader>                — title, progress %
-      │   └── <SessionList>
-      │       └── <SessionCard> (×N)          — flippable flashcard
+      │   └── <SessionCard> (×N)              — same component as resource list
       └── app/sessions/[id]/page.tsx          — Session detail
-          ├── <SessionFlashcard>              — focus, objectives, concepts, outcome
-          ├── <ContentEmbed>                  — YT player / PDF viewer / text excerpt
-          └── <CompleteSessionButton>         — triggers server action + animations
+          ├── <CelebrationTrigger>            — reads ?xp=&leveled= params, fires Zustand event
+          ├── <SessionFlashcard>              — 3D card flip (front: focus+outcome / back: objectives+concepts)
+          ├── <YouTubeEmbed> / <TextExcerpt>  — content inline
+          └── mark-complete form             — server action → redirect with ?xp= params
 ```
 
-Client islands (the `"use client"` files): `<CreateResourceForm>`, `<SessionFlashcard>` (flip animation), `<ContentEmbed>`, `<CompleteSessionButton>`, `<XPBar>`. Everything else is RSC.
+Global overlay: `<CelebrationOverlay>` mounted in `layout.tsx` via `<Providers>`; subscribes to Zustand `pendingEvent`, plays Lottie burst + XP badge / level-up card.
+
+Client islands: `<CreateResourceForm>`, `<SessionFlashcard>` (flip), `<ResourceList>` (stagger), `<CelebrationTrigger>`, `<CelebrationOverlay>`, `<ThemeToggle>`, `<XpBar>`. Everything else is RSC.
 
 ---
 

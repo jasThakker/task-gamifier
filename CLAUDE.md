@@ -67,8 +67,16 @@ src/
   app/                  Next.js App Router pages + layouts
   components/           Reusable React components
     ui/                 shadcn primitives (generated)
-    cards/              Flashcard / session components
-    gamification/       XpBar, LevelBadge, StreakBadge — live as of Phase 2
+    gamification/       XpBar, LevelBadge, StreakBadge, CelebrationOverlay, CelebrationTrigger
+    providers.tsx       ThemeProvider (next-themes) + CelebrationOverlay mount point
+    session-flashcard.tsx   3D flip card (Framer Motion)
+    session-card.tsx    Card shown in resource/session lists
+    resource-list.tsx   Client island with Framer Motion stagger
+    theme-toggle.tsx    🌙/☀️ toggle button
+    create-resource-form.tsx
+    dashboard-content.tsx
+    youtube-embed.tsx
+    text-excerpt.tsx
   server/
     actions/            Server actions (mutations)
     db/
@@ -81,14 +89,16 @@ src/
       prompts.ts        Prompt templates per skill level
     ingest/
       youtube.ts        yt-dlp wrapper
-      pdf.ts            pdf-parse wrapper
+      pdf.ts            pdf-parse wrapper (Phase 4)
       text.ts           text passthrough
   lib/
     xp.ts               XP / level math
     streak.ts           Streak update logic
+    store.ts            Zustand store — cross-component game events (XP burst, level-up)
     constants.ts        USER_ID, level curve, etc.
 drizzle/                migrations
-public/                 static assets, lottie files
+public/
+  lotties/              Lottie JSON animation files (celebration.json)
 ```
 
 ## When you're unsure

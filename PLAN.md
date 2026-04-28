@@ -144,7 +144,7 @@ Cost expectation: Sonnet 4.6 on a 2-hour video transcript ≈ 30k–50k input to
 | **0. Setup** | 3 | Next.js + TS + Tailwind + shadcn + Drizzle + Neon + AI SDK plumbing; `.env` config; basic layout shell | ✅ Done (2026-04-27) — shadcn deferred until phase 1+ when a primitive is actually needed |
 | **1. Text + YouTube video flow** | 8 | End-to-end: paste URL or text → LLM breakdown → session list → mark complete | ✅ Done (2026-04-27) — shadcn v4 (Base UI) + Tailwind v4 upgrade required mid-phase; text flow verified end-to-end |
 | **2. Gamification core** | 5 | XP, level, streak, dashboard, basic transitions | ✅ Done (2026-04-27) — XP/level/streak logic, markSessionComplete wired with DB transaction, real dashboard, header with stats. yt-dlp `--print` flag bug fixed (split into two calls). rawContent no longer stored for YouTube resources. |
-| **3. The "fun" pass** | 8 | Framer Motion polish, Lottie celebrations, custom playful styling, color/typography pass | |
+| **3. The "fun" pass** | 8 | Framer Motion polish, Lottie celebrations, custom playful styling, color/typography pass | ✅ Done (2026-04-27) — SessionFlashcard 3D flip, ResourceList stagger, CelebrationOverlay (Lottie burst + XP/level-up card), Zustand store for cross-component events, dark mode via next-themes, card-playful styling throughout. |
 | **4. PDF support** | 4 | Upload, parse, page-aware sessions, inline PDF render | |
 | **5. YouTube playlist support** | 4 | Multi-video resource, per-video sub-sessions | |
 | **6. Mobile responsive + onboarding** | 4 | Phone-friendly layouts, first-run flow | |
