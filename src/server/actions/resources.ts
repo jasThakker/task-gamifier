@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/server/db/client";
 import { resources, sessions } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { ingestText } from "@/server/ingest/text";
 import { ingestYouTube } from "@/server/ingest/youtube";
 import { ingestPDF } from "@/server/ingest/pdf";
@@ -177,4 +177,10 @@ export async function createResource(
   }
 
   redirect(`/resources/${resourceId}`);
+}
+
+export async function deleteResource(formData: FormData): Promise<void> {
+  const id = z.string().uuid().parse(formData.get("resourceId"));
+  await db.delete(resources).where(and(eq(resources.id, id), eq(resources.userId, USER_ID)));
+  redirect("/resources");
 }

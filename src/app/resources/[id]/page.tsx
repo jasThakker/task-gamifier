@@ -6,6 +6,7 @@ import { SessionCard } from "@/components/session-card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { CelebrationTrigger } from "@/components/gamification/celebration-trigger";
+import { DeleteResourceButton } from "@/components/delete-resource-button";
 
 const SOURCE_LABELS: Record<string, string> = {
   text: "Text",
@@ -41,9 +42,12 @@ export default async function ResourcePage({ params }: Props) {
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-2xl font-bold leading-tight">{resource.title}</h1>
-          <Badge variant="outline" className="shrink-0">
-            {SOURCE_LABELS[resource.sourceType] ?? resource.sourceType}
-          </Badge>
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge variant="outline">
+              {SOURCE_LABELS[resource.sourceType] ?? resource.sourceType}
+            </Badge>
+            <DeleteResourceButton resourceId={resource.id} />
+          </div>
         </div>
 
         {resource.status === "failed" && (
